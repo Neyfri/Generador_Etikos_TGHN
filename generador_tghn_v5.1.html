@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador Modular Avanzado TGHN v5.1 — Fundación Etikos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .draggable-section.dragging { opacity: 0.4; border: 2px dashed #4f46e5; background-color: #f5f3ff; }
+        .drag-handle { cursor: grab; }
+        .drag-handle:active { cursor: grabbing; }
+        .guide-content { transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out; overflow: hidden; }
+        .guide-hidden { max-height: 0; opacity: 0; }
+        .guide-visible { max-height: 600px; opacity: 1; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen pb-12">
+
+    <!-- CABECERA -->
+    <header class="bg-slate-900 text-white py-6 px-8 shadow-md mb-8">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Generador de Publicaciones TGHN</h1>
+                <p class="text-slate-400 text-sm mt-1">Versión 5.1</p>
+            </div>
+            <button onclick="clearAllDataInteractive()" class="bg-red-600 hover:bg-red-500 text-white text-sm font-bold px-4 py-2 rounded-lg shadow transition">
+                🧹 Limpiar Todo (Nuevo Reporte desde Cero)
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- COLUMNA IZQUIERDA: CONFIGURADOR DE CONTENIDOS -->
+        <div class="lg:col-span-7 space-y-6">
+
+            <!-- GUÍA DE USO INTERACTIVA -->
+            <div class="bg-white rounded-xl shadow-sm border border-indigo-200 overflow-hidden">
+                <button onclick="toggleGuide()" class="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-800 p-4 font-bold text-left flex justify-between items-center transition outline-none">
+                    <span class="flex items-center gap-2">📖 Guía de Uso: ¿Cómo crear un reporte desde cero?</span>
+                    <span id="guide-icon">▼</span>
+                </button>
+                <div id="guide-content" class="guide-content guide-hidden bg-white px-6 pb-2 text-sm text-slate-600">
+                    <ol class="list-decimal pl-5 space-y-3 py-4">
+                        <li><strong>Limpieza Inicial:</strong> Si deseas borrar los textos de ejemplo preestablecidos, presiona el botón rojo de la cabecera.</li>
+                        <li><strong>Asigna la Categoría TGHN:</strong> Selecciona el tipo de evento; esto auto-rellenará las píldoras oficiales de cabecera en los tres idiomas de forma simultánea.</li>
+                        <li><strong>Inserta Enlaces y Botones de Acción:</strong> Arriba de cada cuadro de texto tienes herramientas para inyectar hipervínculos dinámicos normales <code class="bg-slate-100 px-1.5 py-0.5 rounded text-indigo-600">[texto](url)</code> o botones interactivos completos <code class="bg-slate-100 px-1.5 py-0.5 rounded text-purple-600">[btn:texto](url)</code> centrados en el cuerpo de la lectura.</li>
+                        <li><strong>Traducción Manual:</strong> Cambia de pestaña (ES / EN / PT) para escribir las versiones de texto correspondientes. La barra conservará los datos de cada idioma de forma independiente.</li>
+                        <li><strong>Mueve Secciones:</strong> Sostén con el mouse el botón <strong>`⋮⋮ Mover`</strong> para reordenar la posición estructural de los bloques.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- SELECTORES DE CONTROL -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Categoría del Evento:</label>
+                        <select id="catCombo" onchange="handleCategoryChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium">
+                            <option value="Otras Actividades">📊 Otras Actividades</option>
+                            <option value="Clubs de Investigación">🌱 Clubs de Investigación</option>
+                            <option value="Clínica de Datos">📊 Clínica de Datos</option>
+                            <option value="Sesiones de Aprendizaje Asistido">📖 Sesiones de Aprendizaje Asistido</option>
+                            <option value="Mentoría">🤝 Mentoría</option>
+                            <option value="Talleres">🛠️ Talleres</option>
+                            <option value="Webinarios">🌐 Webinarios</option>
+                            <option value="Twinning">🤝 Twinning</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Idioma en edición actual:</label>
+                        <div class="flex gap-2">
+                            <button onclick="switchLanguage('es')" id="btn-lang-es" class="flex-1 py-2.5 px-3 rounded-lg font-bold border-2 border-indigo-600 bg-indigo-50 text-indigo-700 text-sm transition">ES</button>
+                            <button onclick="switchLanguage('en')" id="btn-lang-en" class="flex-1 py-2.5 px-3 rounded-lg font-bold border-2 border-slate-200 text-slate-600 text-sm hover:border-slate-300 transition">EN</button>
+                            <button onclick="switchLanguage('pt')" id="btn-lang-pt" class="flex-1 py-2.5 px-3 rounded-lg font-bold border-2 border-slate-200 text-slate-600 text-sm hover:border-slate-300 transition">PT</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                    <label class="inline-flex items-center text-xs font-bold text-slate-700 uppercase cursor-pointer select-none">
+                        <input type="checkbox" id="check-lang-buttons" checked class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 mr-2 h-4 w-4">
+                        Habilitar barra de pestañas interactivas de idiomas (ES/EN/PT) en la web final
+                    </label>
+                </div>
+            </div>
+
+            <!-- CONTENEDOR DRAG & DROP -->
+            <div id="dragContainer" class="space-y-4">
+                
+                <!-- MÓDULO 1: ENCABEZADO -->
+                <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 relative transition" data-section="header" data-id="header">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                        <h3 class="font-bold text-indigo-600 text-sm uppercase tracking-wider">Módulo 1: Encabezado y Píldora</h3>
+                        <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm transition select-none flex items-center gap-1">⋮⋮ Mover</span>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-xs font-bold text-slate-500 uppercase">Texto de la Píldora / Badge:</label>
+                                <button onclick="resetBadgeToOfficial()" class="text-[10px] bg-slate-200 hover:bg-slate-300 text-slate-700 px-2 py-0.5 rounded font-medium transition">🔄 Restaurar Oficial de Categoría</button>
+                            </div>
+                            <input type="text" id="input-badge" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-indigo-500 font-medium text-indigo-700 bg-indigo-50/30">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1 uppercase">Título de la Publicación:</label>
+                            <input type="text" id="input-title" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-indigo-500 font-semibold text-slate-800">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MÓDULO 2: RESUMEN -->
+                <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition" data-section="summary" data-id="summary">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-2">
+                        <input type="text" id="title-sec-summary" class="font-bold text-slate-700 bg-transparent border-b border-dashed border-slate-300 focus:border-indigo-500 outline-none text-sm uppercase tracking-wider w-full sm:w-2/3" value="Resumen de la actividad">
+                        <div class="flex items-center gap-3 self-end sm:self-auto">
+                            <label class="text-xs bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg text-slate-600 font-bold cursor-pointer transition border border-slate-200 shadow-sm"><input type="checkbox" id="check-summary" checked class="rounded border-slate-300 text-indigo-600 mr-1"> Incluir</label>
+                            <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm transition select-none flex items-center gap-1">⋮⋮ Mover</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-bold text-slate-400">Contenido del texto:</label>
+                        <div class="flex gap-2">
+                            <button onclick="insertMarkdownTool('input-summary', 'link')" class="text-xs text-indigo-600 font-bold hover:underline">🔗 Insertar Enlace</button>
+                            <button onclick="insertMarkdownTool('input-summary', 'btn')" class="text-xs text-purple-600 font-bold hover:underline">✨ Insertar Botón</button>
+                        </div>
+                    </div>
+                    <textarea id="input-summary" class="w-full border border-slate-300 rounded-lg p-2 text-sm h-24 resize-none outline-none focus:border-indigo-500" placeholder="Escribe el párrafo aquí..."></textarea>
+                </div>
+
+                <!-- MÓDULO 3: IMAGEN DESTACADA (CORREGIDO ID PARA EL CHECKBOX) -->
+                <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition" data-section="main-image" data-id="main-image">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-2">
+                        <h3 class="font-bold text-slate-700 text-sm uppercase tracking-wider">Imagen Destacada (Principal)</h3>
+                        <div class="flex items-center gap-3 self-end sm:self-auto">
+                            <!-- CORRECCIÓN: id cambiado de check-main-img a check-main-image para alinearse al DOM -->
+                            <label class="text-xs bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg text-slate-600 font-bold cursor-pointer transition border border-slate-200 shadow-sm"><input type="checkbox" id="check-main-image" checked class="rounded border-slate-300 text-indigo-600 mr-1"> Incluir</label>
+                            <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm transition select-none flex items-center gap-1">⋮⋮ Mover</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 mb-1">URL de la Imagen:</label>
+                            <input type="text" id="url-main-img" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-indigo-500" placeholder="https://media.tghn.org/...">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 mb-1">Pie de foto / Leyenda:</label>
+                            <input type="text" id="caption-main-img" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-indigo-500" placeholder="Ej: Representación de la red regional...">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MÓDULO 4: LOGÍSTICA -->
+                <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition" data-section="logistics" data-id="logistics">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-2">
+                        <input type="text" id="title-sec-logistics" class="font-bold text-slate-700 bg-transparent border-b border-dashed border-slate-300 focus:border-indigo-500 outline-none text-sm uppercase tracking-wider w-full sm:w-2/3" value="Detalles Generales y Logística">
+                        <div class="flex items-center gap-3 self-end sm:self-auto">
+                            <label class="text-xs bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg text-slate-600 font-bold cursor-pointer transition border border-slate-200 shadow-sm"><input type="checkbox" id="check-logistics" checked class="rounded border-slate-300 text-indigo-600 mr-1"> Incluir</label>
+                            <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm transition select-none flex items-center gap-1">⋮⋮ Mover</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-bold text-slate-400">Contenido:</label>
+                        <div class="flex gap-2">
+                            <button onclick="insertMarkdownTool('input-logistics', 'link')" class="text-xs text-indigo-600 font-bold hover:underline">🔗 Enlace</button>
+                            <button onclick="insertMarkdownTool('input-logistics', 'btn')" class="text-xs text-purple-600 font-bold hover:underline">✨ Botón</button>
+                        </div>
+                    </div>
+                    <textarea id="input-logistics" class="w-full border border-slate-300 rounded-lg p-2 text-sm h-20 resize-none outline-none focus:border-indigo-500"></textarea>
+                </div>
+
+                <!-- MÓDULO 5: VIÑETAS -->
+                <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition" data-section="bullets" data-id="bullets">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-2">
+                        <input type="text" id="title-sec-bullets" class="font-bold text-slate-700 bg-transparent border-b border-dashed border-slate-300 focus:border-indigo-500 outline-none text-sm uppercase tracking-wider w-full sm:w-2/3" value="Resultados Destacados">
+                        <div class="flex items-center gap-3 self-end sm:self-auto">
+                            <label class="text-xs bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg text-slate-600 font-bold cursor-pointer transition border border-slate-200 shadow-sm"><input type="checkbox" id="check-bullets" checked class="rounded border-slate-300 text-indigo-600 mr-1"> Incluir</label>
+                            <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm transition select-none flex items-center gap-1">⋮⋮ Mover</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-bold text-slate-400">Contenido (Líneas con viñetas):</label>
+                        <div class="flex gap-2">
+                            <button onclick="insertMarkdownTool('input-bullets', 'link')" class="text-xs text-indigo-600 font-bold hover:underline">🔗 Enlace</button>
+                            <button onclick="insertMarkdownTool('input-bullets', 'btn')" class="text-xs text-purple-600 font-bold hover:underline">✨ Botón</button>
+                        </div>
+                    </div>
+                    <textarea id="input-bullets" class="w-full border border-slate-300 rounded-lg p-2 text-sm h-24 resize-none outline-none focus:border-indigo-500" placeholder="• Línea 1&#10;• Línea 2"></textarea>
+                </div>
+
+                <!-- MÓDULO 6: YOUTUBE -->
+                <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition" data-section="video" data-id="video">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-2">
+                        <h3 class="font-bold text-slate-700 text-sm uppercase tracking-wider">Video de YouTube</h3>
+                        <div class="flex items-center gap-3 self-end sm:self-auto">
+                            <label class="text-xs bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg text-slate-600 font-bold cursor-pointer transition border border-slate-200 shadow-sm"><input type="checkbox" id="check-video" checked class="rounded border-slate-300 text-indigo-600 mr-1"> Incluir</label>
+                            <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm transition select-none flex items-center gap-1">⋮⋮ Mover</span>
+                        </div>
+                    </div>
+                    <input type="text" id="input-video" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-indigo-500" value="https://www.youtube.com/watch?v=9CofLX4l98o">
+                </div>
+
+                <!-- MÓDULO 7: GALERÍA -->
+                <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition" data-section="gallery" data-id="gallery">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-2">
+                        <h3 class="font-bold text-slate-700 text-sm uppercase tracking-wider">Galería de Imágenes (URLs por comas)</h3>
+                        <div class="flex items-center gap-3 self-end sm:self-auto">
+                            <label class="text-xs bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg text-slate-600 font-bold cursor-pointer transition border border-slate-200 shadow-sm"><input type="checkbox" id="check-gallery" checked class="rounded border-slate-300 text-indigo-600 mr-1"> Incluir</label>
+                            <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm transition select-none flex items-center gap-1">⋮⋮ Mover</span>
+                        </div>
+                    </div>
+                    <textarea id="input-gallery" class="w-full border border-slate-300 rounded-lg p-2 text-sm h-20 resize-none outline-none focus:border-indigo-500" placeholder="URL1, URL2, URL3..."></textarea>
+                </div>
+
+                <!-- MÓDULO 8: CONCLUSIÓN -->
+                <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition" data-section="conclusion" data-id="conclusion">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-2">
+                        <input type="text" id="title-sec-conclusion" class="font-bold text-slate-700 bg-transparent border-b border-dashed border-slate-300 focus:border-indigo-500 outline-none text-sm uppercase tracking-wider w-full sm:w-2/3" value="Conclusión">
+                        <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm transition select-none flex items-center gap-1">⋮⋮ Mover</span>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-xs font-bold text-slate-400">Contenido de Cierre:</label>
+                            <div class="flex gap-2">
+                                <button onclick="insertMarkdownTool('input-conclusion', 'link')" class="text-xs text-indigo-600 font-bold hover:underline">🔗 Enlace</button>
+                                <button onclick="insertMarkdownTool('input-conclusion', 'btn')" class="text-xs text-purple-600 font-bold hover:underline">✨ Botón</button>
+                            </div>
+                        </div>
+                        <textarea id="input-conclusion" class="w-full border border-slate-300 rounded-lg p-2 text-sm h-24 resize-none outline-none focus:border-indigo-500"></textarea>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Entidades Organizadoras (Una por línea):</label>
+                            <textarea id="input-orgs" class="w-full border border-slate-300 rounded-lg p-2 text-sm h-20 resize-none outline-none focus:border-indigo-500"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- CRECIMIENTO INFINITO MODULAR -->
+            <button onclick="createNewCustomSection()" class="w-full border-2 border-dashed border-indigo-500 hover:border-indigo-600 bg-indigo-50/50 hover:bg-indigo-50 text-indigo-700 font-bold py-4 rounded-xl transition flex items-center justify-center gap-2 shadow-sm text-sm">
+                <span>➕</span> Agregar Nueva Sección Libre Personalizada
+            </button>
+        </div>
+
+        <!-- COLUMNA DERECHA: COMPILADOR HTML -->
+        <div class="lg:col-span-5 space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 sticky top-6">
+                <h2 class="font-bold text-slate-800 text-lg mb-4 flex items-center gap-2">
+                    <span>🚀</span> Código Generado Listo para Django
+                </h2>
+                
+                <button onclick="generateOutputHTML()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow transition duration-200 mb-4">
+                    ⚡ Compilar Publicación Multilingüe
+                </button>
+
+                <textarea id="outputHTML" class="w-full border border-slate-300 rounded-lg p-3 text-xs font-mono h-[480px] bg-slate-900 text-emerald-400 resize-none outline-none" readonly placeholder="El código aparecerá aquí..."></textarea>
+
+                <button onclick="copyToClipboard()" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-lg transition text-sm shadow">
+                    📋 Copiar Código al Portapapeles
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const categoriesData = {
+            "Otras Actividades": { color: "#1d4ed8", bg_badge: "#eff6ff", border: "#dbeafe", badge: { es: "Informe de Actividad / Otras Actividades", en: "Activity Report / Other Activities", pt: "Relatório de Atividade / Outras Atividades" } },
+            "Clubs de Investigación": { color: "#059669", bg_badge: "#ecfdf5", border: "#a7f3d0", badge: { es: "Club de Investigación Científica", en: "Scientific Research Club", pt: "Clube de Pesquisa Científica" } },
+            "Clínica de Datos": { color: "#4f46e5", bg_badge: "#f5f3ff", border: "#c7d2fe", badge: { es: "Clínica de Datos e Información", en: "Data and Information Clinic", pt: "Clínica de Dados e Informação" } },
+            "Sesiones de Aprendizaje Asistido": { color: "#7c3aed", bg_badge: "#f5f3ff", border: "#ddd6fe", badge: { es: "Aprendizaje Asistido y Tutoría", en: "Assisted Learning and Tutoring", pt: "Aprendizagem Assistida e Tutoria" } },
+            "Mentoría": { color: "#d97706", bg_badge: "#fef3c7", border: "#fde68a", badge: { es: "Programa de Mentoría Científica", en: "Scientific Mentorship Program", pt: "Programa de Mentoria Científica" } },
+            "Talleres": { color: "#0284c7", bg_badge: "#f0f9ff", border: "#bae6fd", badge: { es: "Taller Práctico Presencial / Híbrido", en: "Practical Workshop", pt: "Workshop Prático" } },
+            "Webinarios": { color: "#0891b2", bg_badge: "#ecfeff", border: "#a5f3fc", badge: { es: "Webinario Abierto en Línea", en: "Open Online Webinar", pt: "Webinar Online Aberto" } },
+            "Twinning": { color: "#e11d48", bg_badge: "#fff1f2", border: "#fecdd3", badge: { es: "Twinning / Hermanamiento Científico", en: "Twinning / Scientific Partnership", pt: "Twinning / Parceria Científica" } }
+        };
+
+        const defaultSectionTitles = {
+            es: { "title-sec-summary": "Resumen de la actividad", "title-sec-logistics": "Detalles Generales y Logística", "title-sec-bullets": "Resultados Destacados", "title-sec-conclusion": "Conclusión" },
+            en: { "title-sec-summary": "Activity Summary", "title-sec-logistics": "General Details and Logistics", "title-sec-bullets": "Key Achievements", "title-sec-conclusion": "Conclusion" },
+            pt: { "title-sec-summary": "Resumo da atividade", "title-sec-logistics": "Detalhes Gerais e Logística", "title-sec-bullets": "Resultados de Destaque", "title-sec-conclusion": "Conclusão" }
+        };
+
+        let translations = { es: {}, en: {}, pt: {} };
+        let currentLang = 'es';
+        let dynamicSectionCounter = 0;
+
+        // CARGA SILENCIOSA AL INICIAR
+        function silentInitApp() {
+            const catKey = document.getElementById('catCombo').value;
+            ['es', 'en', 'pt'].forEach(lang => {
+                translations[lang] = {};
+                for (let k in defaultSectionTitles[lang]) { translations[lang][k] = defaultSectionTitles[lang][k]; }
+                translations[lang]["input-badge"] = categoriesData[catKey].badge[lang];
+            });
+
+            // Datos Base de ejemplo
+            translations.es["input-title"] = "Informe de la Reunión Anual TGHN LAC 2026";
+            translations.es["input-summary"] = "Los días 1 y 2 de julio de 2026, los representantes de The Global Health Network se reunieron en la [Universidad Autónoma de Santo Domingo (UASD)](https://uasd.edu.do) para celebrar su reunión anual. [btn:Ver Agenda Completa](https://tghn.org/agenda)";
+            translations.es["input-logistics"] = "📅 Fecha: 1 y 2 de julio de 2026\n📍 Lugar: Universidad Autónoma de Santo Domingo (UASD), República Dominicana.";
+            translations.es["input-bullets"] = "• Consolidación de los Research Clubs como estrategia regional.\n• Impulsar grupos de trabajo multinacionales.";
+            translations.es["input-conclusion"] = "La Reunión Anual reafirmó que la colaboración regional continúa siendo el principal motor.";
+            translations.es["input-orgs"] = "• Fundación Etikos\n• The Global Health Network Latin America and the Caribbean (TGHN LAC)";
+
+            // Cargar placeholders base para Inglés/Português para que no queden vacíos
+            translations.en["input-title"] = "Annual Meeting Report TGHN LAC 2026";
+            translations.en["input-summary"] = "On July 1 and 2, 2026, representatives from the institutions that make up TGHN LAC met...";
+            translations.pt["input-title"] = "Relatório da Reunião Anual TGHN LAC 2026";
+            translations.pt["input-summary"] = "Nos dias 1 e 2 de julho de 2026, representantes das instituições se reuniram...";
+
+            loadState(currentLang);
+        }
+
+        function clearAllDataInteractive() {
+            if(!confirm("⚠️ ¿Estás seguro de que deseas vaciar todos los campos para redactar un nuevo reporte?")) return;
+            const catKey = document.getElementById('catCombo').value;
+            ['es', 'en', 'pt'].forEach(lang => {
+                translations[lang] = {};
+                for (let k in defaultSectionTitles[lang]) { translations[lang][k] = defaultSectionTitles[lang][k]; }
+                translations[lang]["input-badge"] = categoriesData[catKey].badge[lang];
+            });
+            const inputs = document.querySelectorAll('#dragContainer input[type="text"], #dragContainer textarea');
+            inputs.forEach(input => { if(!input.id.includes("title-sec") && input.id !== "input-badge" && input.id !== "url-main-img") input.value = ""; });
+            loadState(currentLang);
+        }
+
+        function toggleGuide() {
+            const content = document.getElementById('guide-content');
+            const icon = document.getElementById('guide-icon');
+            content.classList.toggle('guide-hidden');
+            content.classList.toggle('guide-visible');
+            icon.innerText = content.classList.contains('guide-hidden') ? '▼' : '▲';
+        }
+
+        // CONTROL DE VARIABLES EN CALIENTE
+        function saveCurrentState() {
+            const inputs = document.querySelectorAll('#dragContainer input[type="text"], #dragContainer textarea');
+            inputs.forEach(input => { translations[currentLang][input.id] = input.value; });
+        }
+
+        function loadState(lang) {
+            const inputs = document.querySelectorAll('#dragContainer input[type="text"], #dragContainer textarea');
+            inputs.forEach(input => { input.value = translations[lang][input.id] || ""; });
+        }
+
+        function switchLanguage(lang) {
+            saveCurrentState();
+            currentLang = lang;
+            ['es', 'en', 'pt'].forEach(l => {
+                document.getElementById(`btn-lang-${l}`).className = l === lang ? 
+                    "flex-1 py-2.5 px-3 rounded-lg font-bold border-2 border-indigo-600 bg-indigo-50 text-indigo-700 text-sm transition" : 
+                    "flex-1 py-2.5 px-3 rounded-lg font-semibold border-2 border-slate-200 bg-white text-slate-600 text-sm hover:border-slate-300 transition";
+            });
+            loadState(lang);
+        }
+
+        function handleCategoryChange() {
+            const cat = categoriesData[document.getElementById('catCombo').value];
+            document.getElementById('input-badge').value = cat.badge[currentLang];
+            translations.es["input-badge"] = cat.badge.es;
+            translations.en["input-badge"] = cat.badge.en;
+            translations.pt["input-badge"] = cat.badge.pt;
+        }
+
+        function resetBadgeToOfficial() {
+            const cat = categoriesData[document.getElementById('catCombo').value];
+            document.getElementById('input-badge').value = cat.badge[currentLang];
+        }
+
+        // ASISTENTE DE ENLACES Y BOTONES INTERNOS
+        function insertMarkdownTool(textareaId, type) {
+            const text = prompt(type === 'link' ? "Texto del hipervínculo visible:" : "Texto dentro del Botón de Acción:");
+            if (!text) return;
+            const url = prompt("URL de destino (ej: https://...):");
+            if (!url) return;
+            
+            const textarea = document.getElementById(textareaId);
+            const syntax = type === 'link' ? `[${text}](${url})` : `[btn:${text}](${url})`;
+            
+            const startPos = textarea.selectionStart;
+            const endPos = textarea.selectionEnd;
+            textarea.value = textarea.value.substring(0, startPos) + syntax + textarea.value.substring(endPos);
+            textarea.focus();
+        }
+
+        // ADICIÓN DE SECCIONES EN CRECIMIENTO
+        function createNewCustomSection() {
+            saveCurrentState();
+            dynamicSectionCounter++;
+            const id = `custom_${dynamicSectionCounter}`;
+
+            const newModule = document.createElement('div');
+            newModule.draggable = false;
+            newModule.className = "draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition";
+            newModule.setAttribute('data-section', 'custom-text-block');
+            newModule.setAttribute('data-id', id);
+
+            newModule.addEventListener('dragstart', handleDragStart);
+            newModule.addEventListener('dragend', handleDragEnd);
+
+            newModule.innerHTML = `
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-2">
+                    <input type="text" id="title-sec-${id}" class="font-bold text-slate-700 bg-transparent border-b border-dashed border-slate-300 focus:border-indigo-500 outline-none text-sm uppercase tracking-wider w-full sm:w-2/3" value="Sección Personalizada Extra">
+                    <div class="flex items-center gap-3 self-end sm:self-auto">
+                        <label class="text-xs bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg text-slate-600 font-bold cursor-pointer transition border border-slate-200 shadow-sm"><input type="checkbox" id="check-${id}" checked class="rounded border-slate-300 text-indigo-600 mr-1">< Incluir</label>
+                        <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3.5 py-1.5 rounded-lg border border-indigo-100 shadow-sm transition select-none flex items-center gap-1">⋮⋮ Mover</span>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center mb-1">
+                    <label class="block text-xs font-bold text-slate-400">Contenido libre:</label>
+                    <div class="flex gap-2">
+                        <button onclick="insertMarkdownTool('input-${id}', 'link')" class="text-xs text-indigo-600 font-bold hover:underline">🔗 Enlace</button>
+                        <button onclick="insertMarkdownTool('input-${id}', 'btn')" class="text-xs text-purple-600 font-bold hover:underline">✨ Botón</button>
+                    </div>
+                </div>
+                <textarea id="input-${id}" class="w-full border border-slate-300 rounded-lg p-2 text-sm h-24 resize-none outline-none focus:border-indigo-500"></textarea>
+            `;
+
+            document.getElementById('dragContainer').appendChild(newModule);
+            ['es', 'en', 'pt'].forEach(lang => {
+                translations[lang][`title-sec-${id}`] = "Sección Personalizada Extra";
+                translations[lang][`input-${id}`] = "";
+            });
+            loadState(currentLang);
+        }
+
+        // DRAG AND DROP NATIVO SEGURO
+        let draggingElement = null;
+        function enableDrag(handle) { handle.closest('.draggable-section').setAttribute('draggable', 'true'); }
+        function disableDrag(handle) {
+            const card = handle.closest('.draggable-section');
+            if (!card.classList.contains('dragging')) card.setAttribute('draggable', 'false');
+        }
+        function handleDragStart(e) { draggingElement = e.currentTarget; draggingElement.classList.add('dragging'); }
+        function handleDragEnd(e) { if (draggingElement) { draggingElement.classList.remove('dragging'); draggingElement.setAttribute('draggable', 'false'); } draggingElement = null; }
+
+        const container = document.getElementById('dragContainer');
+        container.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const afterElement = getDragAfterElement(container, e.clientY);
+            if (afterElement == null) container.appendChild(draggingElement); else container.insertBefore(draggingElement, afterElement);
+        });
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.draggable-section:not(.dragging)')];
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect(); const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) return { offset: offset, element: child }; else return closest;
+            }, { offset: -Infinity }).element;
+        }
+
+        // PARSER AVANZADO DE SINTAXIS (LINKS Y BOTONES)
+        function parseAdvancedMarkdown(text, catColor) {
+            if (!text) return "";
+            let formatted = text;
+            formatted = formatted.replace(/\[btn:([^\]]+)\]\(([^)]+)\)/g, function(match, label, url) {
+                return `<div style="text-align: center; margin: 25px 0 30px 0;"><a href="${url.trim()}" target="_blank" style="display: inline-block; background-color: ${catColor}; color: white; padding: 11px 32px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.06); transition: opacity 0.2s;">${label.trim()}</a></div>`;
+            });
+            formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(match, label, url) {
+                return `<a href="${url.trim()}" target="_blank" style="color: ${catColor}; text-decoration: underline; font-weight: 600;">${label.trim()}</a>`;
+            });
+            return formatted;
+        }
+
+        // COMPILADOR MÁSTER CON TRES IDIOMAS PERMANENTES
+        function generateOutputHTML() {
+            saveCurrentState();
+            const cat = categoriesData[document.getElementById('catCombo').value];
+            const uniqueId = "tghn_" + Math.floor(Math.random() * 100000);
+
+            let html = `<div id="${uniqueId}" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; font-size: 16px; line-height: 1.7; max-width: 1100px; margin: 0 auto; padding: 20px; background-color: #fcfcfd;">\n\n`;
+
+            // BARRA DE NAVEGACIÓN PERMANENTE CON LOS TRES IDIOMAS ACTIVOS POR DEFECTO
+            if (document.getElementById('check-lang-buttons').checked) {
+                html += `    <!-- BARRA INTERACTIVA PERMANENTE (TRES IDIOMAS) -->
+    <div style="display: flex; justify-content: center; gap: 4px; margin-bottom: 45px; background-color: #f1f5f9; padding: 5px; border-radius: 30px; max-width: 320px; margin-left: auto; margin-right: auto; border: 1px solid #e2e8f0; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);">
+        <button onclick="tghnSwitchView('${uniqueId}', 'es', this)" style="flex: 1; background-color: #ffffff; color: #0f172a; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 700; font-size: 13px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.06); transition: all 0.2s ease;">Español</button>
+        <button onclick="tghnSwitchView('${uniqueId}', 'en', this)" style="flex: 1; background-color: transparent; color: #64748b; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s ease;">English</button>
+        <button onclick="tghnSwitchView('${uniqueId}', 'pt', this)" style="flex: 1; background-color: transparent; color: #64748b; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s ease;">Português</button>
+    </div>\n\n`;
+            }
+
+            const modulesInDOM = [...container.querySelectorAll('.draggable-section')];
+
+            const renderBlockByLanguage = (langCode) => {
+                let blockHtml = "";
+                
+                modulesInDOM.forEach(mod => {
+                    const secType = mod.getAttribute('data-section');
+                    const id = mod.getAttribute('data-id');
+
+                    // CORRECCIÓN CLAVE: Buscar el elemento checkbox exacto según el ID modular corregido
+                    const checkEl = document.getElementById(`check-${id}`);
+                    if (checkEl && !checkEl.checked) return;
+
+                    if (secType === 'header') {
+                        blockHtml += `        <!-- CABECERA -->
+        <div style="text-align: center; padding: 20px 0; margin-bottom: 40px;">
+            <span style="display: inline-block; background-color: ${cat.bg_badge}; color: ${cat.color}; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: 600; margin-bottom: 20px; border: 1px solid ${cat.border}; text-transform: uppercase;">
+                ${translations[langCode]["input-badge"] || cat.badge[langCode]}
+            </span>
+            <h1 style="font-size: 32px; font-weight: 800; color: #1e293b; margin-bottom: 15px; line-height: 1.3;">${translations[langCode]["input-title"] || ''}</h1>
+        </div>\n\n`;
+                    }
+
+                    if (secType === 'summary' || secType === 'custom-text-block') {
+                        const parsedText = parseAdvancedMarkdown(translations[langCode][`input-${id}`], cat.color);
+                        blockHtml += `        <!-- SECCIÓN DE TEXTO -->
+        <div style="border-top: 1px solid #cbd5e1; padding-top: 35px; margin-bottom: 40px;">
+            <strong style="font-size: 20px; color: #1e293b; display: block; margin-bottom: 12px;">${translations[langCode][`title-sec-${id}`] || 'Sección'}</strong>
+            <p style="text-align: justify; margin: 0; color: #1e293b; white-space: pre-line;">${parsedText}</p>
+        </div>\n\n`;
+                    }
+
+                    if (secType === 'main-image') {
+                        const imgUrl = document.getElementById('url-main-img').value.trim();
+                        if(imgUrl) {
+                            blockHtml += `        <!-- IMAGEN DESTACADA ESTABLE -->
+        <div style="margin-bottom: 40px; text-align: center;">
+            <img src="${imgUrl}" alt="Imagen TGHN" style="width: 100%; max-width: 900px; height: 380px; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);" />
+            ${translations[langCode]["caption-main-img"] ? `<em style="display: block; font-size: 14px; color: #64748b; margin-top: 10px;">${translations[langCode]["caption-main-img"]}</em>` : ''}
+        </div>\n\n`;
+                        }
+                    }
+
+                    if (secType === 'logistics') {
+                        const parsedText = parseAdvancedMarkdown(translations[langCode][`input-${id}`], cat.color);
+                        blockHtml += `        <!-- DETALLES LOGÍSTICOS -->
+        <div style="border-top: 1px solid #cbd5e1; padding-top: 35px; margin-bottom: 40px;">
+            <h2 style="font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 20px;">${translations[langCode][`title-sec-${id}`]}</h2>
+            <div style="background: #f8fafc; border-left: 4px solid ${cat.color}; padding: 18px; border-radius: 0 8px 8px 0; white-space: pre-line; color: #1e293b;">${parsedText}</div>
+        </div>\n\n`;
+                    }
+
+                    if (secType === 'bullets') {
+                        let listHtml = '';
+                        if(translations[langCode][`input-${id}`]) {
+                            translations[langCode][`input-${id}`].split('\n').forEach(line => {
+                                if(line.trim()) {
+                                    const parsedLine = parseAdvancedMarkdown(line.replace('•','').replace('*','').trim(), cat.color);
+                                    listHtml += `                <li style="margin-bottom: 10px;">${parsedLine}</li>\n`;
+                                }
+                            });
+                        }
+                        blockHtml += `        <!-- SECCIÓN VIÑETAS -->
+        <div style="border-top: 1px solid #cbd5e1; padding-top: 35px; margin-bottom: 40px;">
+            <h2 style="font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 20px;">${translations[langCode][`title-sec-${id}`]}</h2>
+            <ul style="padding-left: 20px; margin: 0; color: #1e293b;">\n${listHtml}            </ul>
+        </div>\n\n`;
+                    }
+
+                    if (secType === 'video') {
+                        let rawVid = document.getElementById('input-video').value.trim();
+                        if(rawVid) {
+                            let vidId = rawVid.includes('v=') ? rawVid.split('v=')[1].split('&')[0] : (rawVid.includes('youtu.be/') ? rawVid.split('youtu.be/')[1].split('?')[0] : rawVid);
+                            blockHtml += `        <!-- VIDEO EMBED YOUTUBE -->
+        <div style="border-top: 1px solid #cbd5e1; padding-top: 35px; margin-bottom: 40px; text-align: center;">
+            <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+                <iframe src="https://www.youtube.com/embed/${vidId}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" allowfullscreen></iframe>
+            </div>
+        </div>\n\n`;
+                        }
+                    }
+
+                    if (secType === 'gallery') {
+                        let gridHtml = '';
+                        document.getElementById('input-gallery').value.split(',').forEach(url => {
+                            if(url.trim()) gridHtml += `                <div style="text-align: center;"><img style="width: 100%; height: 220px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0;" src="${url.trim()}" /></div>\n`;
+                        });
+                        if(gridHtml) {
+                            blockHtml += `        <!-- GALERÍA GRID -->
+        <div style="border-top: 1px solid #cbd5e1; padding-top: 35px; margin-bottom: 40px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">\n${gridHtml}            </div>
+        </div>\n\n`;
+                        }
+                    }
+
+                    if (secType === 'conclusion') {
+                        let orgsHtml = '';
+                        if(translations[langCode]["input-orgs"]) {
+                            translations[langCode]["input-orgs"].split('\n').forEach(line => {
+                                if(line.trim()) {
+                                    const parsedOrg = parseAdvancedMarkdown(line.replace('•','').replace('*','').trim(), cat.color);
+                                    orgsHtml += `                <p style="margin: 0 0 8px 0; color: rgba(255,255,255,0.85); font-size: 15px;">• ${parsedOrg}</p>\n`;
+                                }
+                            });
+                        }
+                        const parsedConclusion = parseAdvancedMarkdown(translations[langCode][`input-${id}`], cat.color);
+                        blockHtml += `        <!-- CONCLUSIÓN FINALES -->
+        <div style="border-top: 1px solid #cbd5e1; background-color: #0f172a; color: white; padding: 45px 30px; text-align: center; border-radius: 12px; margin-top: 20px;">
+            <h2 style="font-size: 26px; color: #ffffff; margin-bottom: 15px; font-weight: 800;">${translations[langCode][`title-sec-${id}`]}</h2>
+            <p style="color: #94a3b8; max-width: 850px; margin: 0 auto 30px auto; font-size: 16px; text-align: justify; line-height: 1.8;">${parsedConclusion}</p>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #334155; text-align: left;">
+                <strong style="color: #ffffff; font-size: 16px; display: block; margin-bottom: 12px;">Organización y Soporte Técnico:</strong>\n${orgsHtml}            </div>
+        </div>\n\n`;
+                    }
+                });
+
+                return blockHtml;
+            };
+
+            // INYECCIÓN PERMANENTE DE LOS TRES BLOQUES DE TRADUCCIÓN
+            html += `    <!-- CONTENEDORES DE IDIOMAS INTEGRADOS -->\n`;
+            html += `    <div class="${uniqueId}_lang_block" id="${uniqueId}_es" style="display: block;">\n${renderBlockByLanguage('es')}    </div>\n\n`;
+            html += `    <div class="${uniqueId}_lang_block" id="${uniqueId}_en" style="display: none;">\n${renderBlockByLanguage('en')}    </div>\n\n`;
+            html += `    <div class="${uniqueId}_lang_block" id="${uniqueId}_pt" style="display: none;">\n${renderBlockByLanguage('pt')}    </div>\n\n`;
+
+            html += `    <!-- CONTROLADORES DINÁMICOS -->
+    <script>
+        function tghnSwitchView(wrapperId, langCode, clickedBtn) {
+            var blocks = document.querySelectorAll('.' + wrapperId + '_lang_block');
+            blocks.forEach(function(b) { b.style.display = 'none'; });
+            document.getElementById(wrapperId + '_' + langCode).style.display = 'block';
+            
+            var buttons = clickedBtn.parentElement.children;
+            for(var i=0; i < buttons.length; i++) {
+                buttons[i].style.backgroundColor = 'transparent'; buttons[i].style.color = '#64748b'; buttons[i].style.fontWeight = '600'; buttons[i].style.boxShadow = 'none';
+            }
+            clickedBtn.style.backgroundColor = '#ffffff'; clickedBtn.style.color = '#0f172a'; clickedBtn.style.fontWeight = '700'; clickedBtn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)';
+        }
+    <\/script>\n\n</div>`;
+            document.getElementById('outputHTML').value = html;
+        }
+
+        window.onload = function() {
+            silentInitApp();
+        };
+
+        document.querySelectorAll('#dragContainer .draggable-section').forEach(module => {
+            module.addEventListener('dragstart', handleDragStart);
+            module.addEventListener('dragend', handleDragEnd);
+        });
+
+        function copyToClipboard() { document.getElementById("outputHTML").select(); document.execCommand("copy"); alert("¡Código Modular v5.1 copiado con éxito!"); }
+    </script>
+</body>
+</html>
