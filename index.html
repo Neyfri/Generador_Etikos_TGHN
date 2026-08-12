@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador Modular Avanzado TGHN v5.1 — Fundación Etikos</title>
+    <title>Generador Modular Avanzado TGHN v6 — Fundación Etikos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .draggable-section.dragging { opacity: 0.4; border: 2px dashed #4f46e5; background-color: #f5f3ff; }
@@ -16,15 +16,15 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen pb-12">
 
-    <!-- CABECERA -->
+    <!-- CABECERA PRINCIPAL -->
     <header class="bg-slate-900 text-white py-6 px-8 shadow-md mb-8">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
                 <h1 class="text-2xl font-bold tracking-tight">Generador de Publicaciones TGHN</h1>
-                <p class="text-slate-400 text-sm mt-1">Versión 5.1</p>
+                <p class="text-slate-400 text-sm mt-1">Versión 6.0: Traducción automática con API gratuita + Pestañas permanentes</p>
             </div>
             <button onclick="clearAllDataInteractive()" class="bg-red-600 hover:bg-red-500 text-white text-sm font-bold px-4 py-2 rounded-lg shadow transition">
-                🧹 Limpiar Todo (Nuevo Reporte desde Cero)
+                🧹 Limpiar Todo (Nuevo Reporte)
             </button>
         </div>
     </header>
@@ -37,21 +37,21 @@
             <!-- GUÍA DE USO INTERACTIVA -->
             <div class="bg-white rounded-xl shadow-sm border border-indigo-200 overflow-hidden">
                 <button onclick="toggleGuide()" class="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-800 p-4 font-bold text-left flex justify-between items-center transition outline-none">
-                    <span class="flex items-center gap-2">📖 Guía de Uso: ¿Cómo crear un reporte desde cero?</span>
+                    <span class="flex items-center gap-2">📖 Guía de Uso Rápida (Traducción Automática API)</span>
                     <span id="guide-icon">▼</span>
                 </button>
                 <div id="guide-content" class="guide-content guide-hidden bg-white px-6 pb-2 text-sm text-slate-600">
                     <ol class="list-decimal pl-5 space-y-3 py-4">
-                        <li><strong>Limpieza Inicial:</strong> Si deseas borrar los textos de ejemplo preestablecidos, presiona el botón rojo de la cabecera.</li>
-                        <li><strong>Asigna la Categoría TGHN:</strong> Selecciona el tipo de evento; esto auto-rellenará las píldoras oficiales de cabecera en los tres idiomas de forma simultánea.</li>
-                        <li><strong>Inserta Enlaces y Botones de Acción:</strong> Arriba de cada cuadro de texto tienes herramientas para inyectar hipervínculos dinámicos normales <code class="bg-slate-100 px-1.5 py-0.5 rounded text-indigo-600">[texto](url)</code> o botones interactivos completos <code class="bg-slate-100 px-1.5 py-0.5 rounded text-purple-600">[btn:texto](url)</code> centrados en el cuerpo de la lectura.</li>
-                        <li><strong>Traducción Manual:</strong> Cambia de pestaña (ES / EN / PT) para escribir las versiones de texto correspondientes. La barra conservará los datos de cada idioma de forma independiente.</li>
-                        <li><strong>Mueve Secciones:</strong> Sostén con el mouse el botón <strong>`⋮⋮ Mover`</strong> para reordenar la posición estructural de los bloques.</li>
+                        <li><strong>Redacta en Español:</strong> Llena los campos de la pestaña <strong>ES</strong> con la información de tu evento o reporte.</li>
+                        <li><strong>Añade Enlaces / Botones:</strong> Usa los botones <em>🔗 Insertar Enlace</em> o <em>✨ Insertar Botón</em> para enriquecer el texto.</li>
+                        <li><strong>Traducción Automática por API:</strong> Haz clic en el botón azul <strong>`🤖 Traducir Todo Automáticamente (EN / PT)`</strong>. La app conectará con el servidor y traducirá todos los campos en segundos.</li>
+                        <li><strong>Revisa o Ajusta:</strong> Puedes cambiar a las pestañas <strong>EN</strong> o <strong>PT</strong> para pulir cualquier traducción.</li>
+                        <li><strong>Compila:</strong> Presiona <strong>⚡ Compilar Publicación</strong> para obtener el código listo para Django.</li>
                     </ol>
                 </div>
             </div>
 
-            <!-- SELECTORES DE CONTROL -->
+            <!-- SELECTORES DE CONTROL Y BOTÓN DE TRADUCCIÓN AUTO -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -76,6 +76,15 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- BOTÓN MAESTRO DE TRADUCCIÓN AUTOMÁTICA -->
+                <div class="pt-2">
+                    <button id="btn-auto-translate" onclick="runAutoTranslationAPI()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow transition duration-200 flex items-center justify-center gap-2 text-sm">
+                        <span>🤖</span> Traducir Todo Automáticamente a Inglés y Portugués (API)
+                    </button>
+                    <p id="translate-status" class="text-xs text-center text-slate-500 mt-1.5 hidden">⏳ Traduciendo contenidos en la nube, por favor espera unos segundos...</p>
+                </div>
+
                 <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
                     <label class="inline-flex items-center text-xs font-bold text-slate-700 uppercase cursor-pointer select-none">
                         <input type="checkbox" id="check-lang-buttons" checked class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 mr-2 h-4 w-4">
@@ -97,7 +106,7 @@
                         <div>
                             <div class="flex justify-between items-center mb-1">
                                 <label class="block text-xs font-bold text-slate-500 uppercase">Texto de la Píldora / Badge:</label>
-                                <button onclick="resetBadgeToOfficial()" class="text-[10px] bg-slate-200 hover:bg-slate-300 text-slate-700 px-2 py-0.5 rounded font-medium transition">🔄 Restaurar Oficial de Categoría</button>
+                                <button onclick="resetBadgeToOfficial()" class="text-[10px] bg-slate-200 hover:bg-slate-300 text-slate-700 px-2 py-0.5 rounded font-medium transition">🔄 Restaurar Oficial</button>
                             </div>
                             <input type="text" id="input-badge" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-indigo-500 font-medium text-indigo-700 bg-indigo-50/30">
                         </div>
@@ -127,12 +136,11 @@
                     <textarea id="input-summary" class="w-full border border-slate-300 rounded-lg p-2 text-sm h-24 resize-none outline-none focus:border-indigo-500" placeholder="Escribe el párrafo aquí..."></textarea>
                 </div>
 
-                <!-- MÓDULO 3: IMAGEN DESTACADA (CORREGIDO ID PARA EL CHECKBOX) -->
+                <!-- MÓDULO 3: IMAGEN DESTACADA -->
                 <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition" data-section="main-image" data-id="main-image">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-2">
-                        <h3 class="font-bold text-slate-700 text-sm uppercase tracking-wider">Imagen Destacada (Principal)</h3>
+                        <h3 class="font-bold text-slate-700 text-sm uppercase tracking-wider">Imagen Destacada Fija (Anti-Deformación)</h3>
                         <div class="flex items-center gap-3 self-end sm:self-auto">
-                            <!-- CORRECCIÓN: id cambiado de check-main-img a check-main-image para alinearse al DOM -->
                             <label class="text-xs bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg text-slate-600 font-bold cursor-pointer transition border border-slate-200 shadow-sm"><input type="checkbox" id="check-main-image" checked class="rounded border-slate-300 text-indigo-600 mr-1"> Incluir</label>
                             <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm transition select-none flex items-center gap-1">⋮⋮ Mover</span>
                         </div>
@@ -236,7 +244,7 @@
 
             </div>
 
-            <!-- CRECIMIENTO INFINITO MODULAR -->
+            <!-- BOTÓN MAESTRO DE CRECIMIENTO INFINITO -->
             <button onclick="createNewCustomSection()" class="w-full border-2 border-dashed border-indigo-500 hover:border-indigo-600 bg-indigo-50/50 hover:bg-indigo-50 text-indigo-700 font-bold py-4 rounded-xl transition flex items-center justify-center gap-2 shadow-sm text-sm">
                 <span>➕</span> Agregar Nueva Sección Libre Personalizada
             </button>
@@ -285,7 +293,6 @@
         let currentLang = 'es';
         let dynamicSectionCounter = 0;
 
-        // CARGA SILENCIOSA AL INICIAR
         function silentInitApp() {
             const catKey = document.getElementById('catCombo').value;
             ['es', 'en', 'pt'].forEach(lang => {
@@ -294,19 +301,13 @@
                 translations[lang]["input-badge"] = categoriesData[catKey].badge[lang];
             });
 
-            // Datos Base de ejemplo
+            // Datos base
             translations.es["input-title"] = "Informe de la Reunión Anual TGHN LAC 2026";
             translations.es["input-summary"] = "Los días 1 y 2 de julio de 2026, los representantes de The Global Health Network se reunieron en la [Universidad Autónoma de Santo Domingo (UASD)](https://uasd.edu.do) para celebrar su reunión anual. [btn:Ver Agenda Completa](https://tghn.org/agenda)";
             translations.es["input-logistics"] = "📅 Fecha: 1 y 2 de julio de 2026\n📍 Lugar: Universidad Autónoma de Santo Domingo (UASD), República Dominicana.";
             translations.es["input-bullets"] = "• Consolidación de los Research Clubs como estrategia regional.\n• Impulsar grupos de trabajo multinacionales.";
             translations.es["input-conclusion"] = "La Reunión Anual reafirmó que la colaboración regional continúa siendo el principal motor.";
             translations.es["input-orgs"] = "• Fundación Etikos\n• The Global Health Network Latin America and the Caribbean (TGHN LAC)";
-
-            // Cargar placeholders base para Inglés/Português para que no queden vacíos
-            translations.en["input-title"] = "Annual Meeting Report TGHN LAC 2026";
-            translations.en["input-summary"] = "On July 1 and 2, 2026, representatives from the institutions that make up TGHN LAC met...";
-            translations.pt["input-title"] = "Relatório da Reunião Anual TGHN LAC 2026";
-            translations.pt["input-summary"] = "Nos dias 1 e 2 de julho de 2026, representantes das instituições se reuniram...";
 
             loadState(currentLang);
         }
@@ -332,7 +333,6 @@
             icon.innerText = content.classList.contains('guide-hidden') ? '▼' : '▲';
         }
 
-        // CONTROL DE VARIABLES EN CALIENTE
         function saveCurrentState() {
             const inputs = document.querySelectorAll('#dragContainer input[type="text"], #dragContainer textarea');
             inputs.forEach(input => { translations[currentLang][input.id] = input.value; });
@@ -367,7 +367,6 @@
             document.getElementById('input-badge').value = cat.badge[currentLang];
         }
 
-        // ASISTENTE DE ENLACES Y BOTONES INTERNOS
         function insertMarkdownTool(textareaId, type) {
             const text = prompt(type === 'link' ? "Texto del hipervínculo visible:" : "Texto dentro del Botón de Acción:");
             if (!text) return;
@@ -383,7 +382,99 @@
             textarea.focus();
         }
 
-        // ADICIÓN DE SECCIONES EN CRECIMIENTO
+        // ==========================================
+        // SISTEMA DE TRADUCCIÓN AUTOMÁTICA CON API
+        // ==========================================
+        async function fetchTranslation(text, targetLang) {
+            if (!text || text.trim() === '') return '';
+            
+            // Proteger sintaxis de enlaces [texto](url) y botones [btn:texto](url)
+            let linkMap = [];
+            let cleanText = text.replace(/\[(btn:[^\]]+|[^\]]+)\]\(([^)]+)\)/g, (match, p1, p2) => {
+                let index = linkMap.length;
+                linkMap.push({ isBtn: p1.startsWith('btn:'), label: p1.replace('btn:', ''), url: p2 });
+                return ` [[LINK_${index}]] `;
+            });
+
+            try {
+                let paragraphs = cleanText.split('\n');
+                let translatedParagraphs = [];
+
+                for (let para of paragraphs) {
+                    if (!para.trim()) {
+                        translatedParagraphs.push('');
+                        continue;
+                    }
+                    let res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(para)}&langpair=es|${targetLang}`);
+                    let json = await res.json();
+                    let transPara = (json && json.responseData && json.responseData.translatedText) ? json.responseData.translatedText : para;
+                    translatedParagraphs.push(transPara);
+                }
+
+                let translatedFull = translatedParagraphs.join('\n');
+
+                // Restaurar sintaxis con etiquetas traducidas
+                for (let i = 0; i < linkMap.length; i++) {
+                    let item = linkMap[i];
+                    let labelTrans = item.label;
+                    try {
+                        let lRes = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(item.label)}&langpair=es|${targetLang}`);
+                        let lJson = await lRes.json();
+                        if (lJson && lJson.responseData && lJson.responseData.translatedText) {
+                            labelTrans = lJson.responseData.translatedText;
+                        }
+                    } catch(e){}
+
+                    let restoredMarkdown = item.isBtn ? `[btn:${labelTrans}](${item.url})` : `[${labelTrans}](${item.url})`;
+                    let regexPlaceholder = new RegExp(`\\[\\s*\\[\\s*LINK_${i}\\s*\\]\\s*\\]`, 'gi');
+                    translatedFull = translatedFull.replace(regexPlaceholder, restoredMarkdown);
+                }
+
+                return translatedFull;
+            } catch (e) {
+                console.error('Error de traducción:', e);
+                return text;
+            }
+        }
+
+        async function runAutoTranslationAPI() {
+            saveCurrentState();
+            const btn = document.getElementById('btn-auto-translate');
+            const status = document.getElementById('translate-status');
+            
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            status.classList.remove('hidden');
+
+            const keysToTranslate = Object.keys(translations.es);
+            
+            // Traducir a Inglés (EN)
+            for (let key of keysToTranslate) {
+                if (key.includes('title-sec') && defaultSectionTitles.en[key]) {
+                    translations.en[key] = defaultSectionTitles.en[key];
+                } else if (translations.es[key]) {
+                    translations.en[key] = await fetchTranslation(translations.es[key], 'en');
+                }
+            }
+
+            // Traducir a Portugués (PT)
+            for (let key of keysToTranslate) {
+                if (key.includes('title-sec') && defaultSectionTitles.pt[key]) {
+                    translations.pt[key] = defaultSectionTitles.pt[key];
+                } else if (translations.es[key]) {
+                    translations.pt[key] = await fetchTranslation(translations.es[key], 'pt');
+                }
+            }
+
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            status.classList.add('hidden');
+
+            loadState(currentLang);
+            alert("✨ ¡Traducción automática completada con éxito para Inglés y Portugués! Puedes revisar o pulir el texto en las pestañas EN y PT.");
+        }
+
+        // CRECIMIENTO INFINITO MODULAR
         function createNewCustomSection() {
             saveCurrentState();
             dynamicSectionCounter++;
@@ -402,7 +493,7 @@
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-2">
                     <input type="text" id="title-sec-${id}" class="font-bold text-slate-700 bg-transparent border-b border-dashed border-slate-300 focus:border-indigo-500 outline-none text-sm uppercase tracking-wider w-full sm:w-2/3" value="Sección Personalizada Extra">
                     <div class="flex items-center gap-3 self-end sm:self-auto">
-                        <label class="text-xs bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg text-slate-600 font-bold cursor-pointer transition border border-slate-200 shadow-sm"><input type="checkbox" id="check-${id}" checked class="rounded border-slate-300 text-indigo-600 mr-1">< Incluir</label>
+                        <label class="text-xs bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg text-slate-600 font-bold cursor-pointer transition border border-slate-200 shadow-sm"><input type="checkbox" id="check-${id}" checked class="rounded border-slate-300 text-indigo-600 mr-1"> Incluir</label>
                         <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3.5 py-1.5 rounded-lg border border-indigo-100 shadow-sm transition select-none flex items-center gap-1">⋮⋮ Mover</span>
                     </div>
                 </div>
@@ -448,7 +539,7 @@
             }, { offset: -Infinity }).element;
         }
 
-        // PARSER AVANZADO DE SINTAXIS (LINKS Y BOTONES)
+        // PARSER SINTÁCTICO
         function parseAdvancedMarkdown(text, catColor) {
             if (!text) return "";
             let formatted = text;
@@ -461,7 +552,7 @@
             return formatted;
         }
 
-        // COMPILADOR MÁSTER CON TRES IDIOMAS PERMANENTES
+        // COMPILADOR MÁSTER CON IDIOMAS PERMANENTES
         function generateOutputHTML() {
             saveCurrentState();
             const cat = categoriesData[document.getElementById('catCombo').value];
@@ -469,7 +560,6 @@
 
             let html = `<div id="${uniqueId}" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; font-size: 16px; line-height: 1.7; max-width: 1100px; margin: 0 auto; padding: 20px; background-color: #fcfcfd;">\n\n`;
 
-            // BARRA DE NAVEGACIÓN PERMANENTE CON LOS TRES IDIOMAS ACTIVOS POR DEFECTO
             if (document.getElementById('check-lang-buttons').checked) {
                 html += `    <!-- BARRA INTERACTIVA PERMANENTE (TRES IDIOMAS) -->
     <div style="display: flex; justify-content: center; gap: 4px; margin-bottom: 45px; background-color: #f1f5f9; padding: 5px; border-radius: 30px; max-width: 320px; margin-left: auto; margin-right: auto; border: 1px solid #e2e8f0; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);">
@@ -488,7 +578,6 @@
                     const secType = mod.getAttribute('data-section');
                     const id = mod.getAttribute('data-id');
 
-                    // CORRECCIÓN CLAVE: Buscar el elemento checkbox exacto según el ID modular corregido
                     const checkEl = document.getElementById(`check-${id}`);
                     if (checkEl && !checkEl.checked) return;
 
@@ -514,7 +603,7 @@
                     if (secType === 'main-image') {
                         const imgUrl = document.getElementById('url-main-img').value.trim();
                         if(imgUrl) {
-                            blockHtml += `        <!-- IMAGEN DESTACADA ESTABLE -->
+                            blockHtml += `        <!-- IMAGEN ESTABLE -->
         <div style="margin-bottom: 40px; text-align: center;">
             <img src="${imgUrl}" alt="Imagen TGHN" style="width: 100%; max-width: 900px; height: 380px; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);" />
             ${translations[langCode]["caption-main-img"] ? `<em style="display: block; font-size: 14px; color: #64748b; margin-top: 10px;">${translations[langCode]["caption-main-img"]}</em>` : ''}
@@ -585,7 +674,7 @@
                             });
                         }
                         const parsedConclusion = parseAdvancedMarkdown(translations[langCode][`input-${id}`], cat.color);
-                        blockHtml += `        <!-- CONCLUSIÓN FINALES -->
+                        blockHtml += `        <!-- CONCLUSIÓN -->
         <div style="border-top: 1px solid #cbd5e1; background-color: #0f172a; color: white; padding: 45px 30px; text-align: center; border-radius: 12px; margin-top: 20px;">
             <h2 style="font-size: 26px; color: #ffffff; margin-bottom: 15px; font-weight: 800;">${translations[langCode][`title-sec-${id}`]}</h2>
             <p style="color: #94a3b8; max-width: 850px; margin: 0 auto 30px auto; font-size: 16px; text-align: justify; line-height: 1.8;">${parsedConclusion}</p>
@@ -598,7 +687,6 @@
                 return blockHtml;
             };
 
-            // INYECCIÓN PERMANENTE DE LOS TRES BLOQUES DE TRADUCCIÓN
             html += `    <!-- CONTENEDORES DE IDIOMAS INTEGRADOS -->\n`;
             html += `    <div class="${uniqueId}_lang_block" id="${uniqueId}_es" style="display: block;">\n${renderBlockByLanguage('es')}    </div>\n\n`;
             html += `    <div class="${uniqueId}_lang_block" id="${uniqueId}_en" style="display: none;">\n${renderBlockByLanguage('en')}    </div>\n\n`;
@@ -630,7 +718,7 @@
             module.addEventListener('dragend', handleDragEnd);
         });
 
-        function copyToClipboard() { document.getElementById("outputHTML").select(); document.execCommand("copy"); alert("¡Código Modular v5.1 copiado con éxito!"); }
+        function copyToClipboard() { document.getElementById("outputHTML").select(); document.execCommand("copy"); alert("¡Código Modular v6.0 copiado con éxito!"); }
     </script>
 </body>
 </html>
