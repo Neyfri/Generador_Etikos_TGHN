@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador Modular Avanzado TGHN v6 — Fundación Etikos</title>
+    <title>Generador Modular TGHN v7 — Fundación Etikos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .draggable-section.dragging { opacity: 0.4; border: 2px dashed #4f46e5; background-color: #f5f3ff; }
@@ -21,7 +21,7 @@
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
                 <h1 class="text-2xl font-bold tracking-tight">Generador de Publicaciones TGHN</h1>
-                <p class="text-slate-400 text-sm mt-1">Versión 6.0: Traducción automática con API gratuita + Pestañas permanentes</p>
+                <p class="text-slate-400 text-sm mt-1">Versión 7.0: API de Google Translate, Media Global e Imágenes Adaptables</p>
             </div>
             <button onclick="clearAllDataInteractive()" class="bg-red-600 hover:bg-red-500 text-white text-sm font-bold px-4 py-2 rounded-lg shadow transition">
                 🧹 Limpiar Todo (Nuevo Reporte)
@@ -37,16 +37,16 @@
             <!-- GUÍA DE USO INTERACTIVA -->
             <div class="bg-white rounded-xl shadow-sm border border-indigo-200 overflow-hidden">
                 <button onclick="toggleGuide()" class="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-800 p-4 font-bold text-left flex justify-between items-center transition outline-none">
-                    <span class="flex items-center gap-2">📖 Guía de Uso Rápida (Traducción Automática API)</span>
+                    <span class="flex items-center gap-2">📖 Guía de Uso (Traducción con Google API)</span>
                     <span id="guide-icon">▼</span>
                 </button>
                 <div id="guide-content" class="guide-content guide-hidden bg-white px-6 pb-2 text-sm text-slate-600">
                     <ol class="list-decimal pl-5 space-y-3 py-4">
-                        <li><strong>Redacta en Español:</strong> Llena los campos de la pestaña <strong>ES</strong> con la información de tu evento o reporte.</li>
-                        <li><strong>Añade Enlaces / Botones:</strong> Usa los botones <em>🔗 Insertar Enlace</em> o <em>✨ Insertar Botón</em> para enriquecer el texto.</li>
-                        <li><strong>Traducción Automática por API:</strong> Haz clic en el botón azul <strong>`🤖 Traducir Todo Automáticamente (EN / PT)`</strong>. La app conectará con el servidor y traducirá todos los campos en segundos.</li>
-                        <li><strong>Revisa o Ajusta:</strong> Puedes cambiar a las pestañas <strong>EN</strong> o <strong>PT</strong> para pulir cualquier traducción.</li>
-                        <li><strong>Compila:</strong> Presiona <strong>⚡ Compilar Publicación</strong> para obtener el código listo para Django.</li>
+                        <li><strong>Redacta en Español:</strong> Llena los campos en la pestaña <strong>ES</strong>. Las URLs de imágenes y videos ahora son globales y no se borran al cambiar de idioma.</li>
+                        <li><strong>Añade Enlaces / Botones:</strong> Usa <em>🔗 Insertar Enlace</em> o <em>✨ Insertar Botón</em> para enriquecer el texto.</li>
+                        <li><strong>Traducción por Google Translate:</strong> Clic en <strong>`🤖 Traducir Todo Automáticamente`</strong>. Traducirá los textos pero protegerá a las "Entidades Organizadoras" y los enlaces.</li>
+                        <li><strong>Revisa:</strong> Cambia a las pestañas <strong>EN</strong> o <strong>PT</strong> para ajustar manualmente si lo deseas.</li>
+                        <li><strong>Compila:</strong> Presiona <strong>⚡ Compilar Publicación</strong> para obtener tu código.</li>
                     </ol>
                 </div>
             </div>
@@ -80,15 +80,15 @@
                 <!-- BOTÓN MAESTRO DE TRADUCCIÓN AUTOMÁTICA -->
                 <div class="pt-2">
                     <button id="btn-auto-translate" onclick="runAutoTranslationAPI()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow transition duration-200 flex items-center justify-center gap-2 text-sm">
-                        <span>🤖</span> Traducir Todo Automáticamente a Inglés y Portugués (API)
+                        <span>🤖</span> Traducir Todo Automáticamente a Inglés y Portugués (Google API)
                     </button>
-                    <p id="translate-status" class="text-xs text-center text-slate-500 mt-1.5 hidden">⏳ Traduciendo contenidos en la nube, por favor espera unos segundos...</p>
+                    <p id="translate-status" class="text-xs text-center text-slate-500 mt-1.5 hidden">⏳ Traduciendo contenidos en la nube de Google, por favor espera...</p>
                 </div>
 
                 <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
                     <label class="inline-flex items-center text-xs font-bold text-slate-700 uppercase cursor-pointer select-none">
                         <input type="checkbox" id="check-lang-buttons" checked class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 mr-2 h-4 w-4">
-                        Habilitar barra de pestañas interactivas de idiomas (ES/EN/PT) en la web final
+                        Habilitar barra de pestañas interactivas de idiomas (ES/EN/PT)
                     </label>
                 </div>
             </div>
@@ -136,10 +136,10 @@
                     <textarea id="input-summary" class="w-full border border-slate-300 rounded-lg p-2 text-sm h-24 resize-none outline-none focus:border-indigo-500" placeholder="Escribe el párrafo aquí..."></textarea>
                 </div>
 
-                <!-- MÓDULO 3: IMAGEN DESTACADA -->
+                <!-- MÓDULO 3: IMAGEN DESTACADA (GLOBAL) -->
                 <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition" data-section="main-image" data-id="main-image">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-2">
-                        <h3 class="font-bold text-slate-700 text-sm uppercase tracking-wider">Imagen Destacada Fija (Anti-Deformación)</h3>
+                        <h3 class="font-bold text-slate-700 text-sm uppercase tracking-wider">Imagen Destacada (Global)</h3>
                         <div class="flex items-center gap-3 self-end sm:self-auto">
                             <label class="text-xs bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg text-slate-600 font-bold cursor-pointer transition border border-slate-200 shadow-sm"><input type="checkbox" id="check-main-image" checked class="rounded border-slate-300 text-indigo-600 mr-1"> Incluir</label>
                             <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm transition select-none flex items-center gap-1">⋮⋮ Mover</span>
@@ -147,12 +147,12 @@
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-slate-400 mb-1">URL de la Imagen:</label>
-                            <input type="text" id="url-main-img" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-indigo-500" placeholder="https://media.tghn.org/...">
+                            <label class="block text-xs font-bold text-indigo-600 mb-1">URL de la Imagen (Global):</label>
+                            <input type="text" id="url-main-img" class="w-full border border-indigo-200 bg-indigo-50/30 rounded-lg p-2 text-sm outline-none focus:border-indigo-500" placeholder="https://media.tghn.org/...">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-400 mb-1">Pie de foto / Leyenda:</label>
-                            <input type="text" id="caption-main-img" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-indigo-500" placeholder="Ej: Representación de la red regional...">
+                            <label class="block text-xs font-bold text-slate-400 mb-1">Pie de foto / Leyenda (Traducible):</label>
+                            <input type="text" id="caption-main-img" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-indigo-500" placeholder="Ej: Representación de la red...">
                         </div>
                     </div>
                 </div>
@@ -195,31 +195,31 @@
                     <textarea id="input-bullets" class="w-full border border-slate-300 rounded-lg p-2 text-sm h-24 resize-none outline-none focus:border-indigo-500" placeholder="• Línea 1&#10;• Línea 2"></textarea>
                 </div>
 
-                <!-- MÓDULO 6: YOUTUBE -->
+                <!-- MÓDULO 6: YOUTUBE (GLOBAL) -->
                 <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition" data-section="video" data-id="video">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-2">
-                        <h3 class="font-bold text-slate-700 text-sm uppercase tracking-wider">Video de YouTube</h3>
+                        <h3 class="font-bold text-slate-700 text-sm uppercase tracking-wider">Video de YouTube (Global)</h3>
                         <div class="flex items-center gap-3 self-end sm:self-auto">
                             <label class="text-xs bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg text-slate-600 font-bold cursor-pointer transition border border-slate-200 shadow-sm"><input type="checkbox" id="check-video" checked class="rounded border-slate-300 text-indigo-600 mr-1"> Incluir</label>
                             <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm transition select-none flex items-center gap-1">⋮⋮ Mover</span>
                         </div>
                     </div>
-                    <input type="text" id="input-video" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-indigo-500" value="https://www.youtube.com/watch?v=9CofLX4l98o">
+                    <input type="text" id="input-video" class="w-full border border-indigo-200 bg-indigo-50/30 rounded-lg p-2 text-sm outline-none focus:border-indigo-500" value="https://www.youtube.com/watch?v=9CofLX4l98o">
                 </div>
 
-                <!-- MÓDULO 7: GALERÍA -->
+                <!-- MÓDULO 7: GALERÍA (GLOBAL) -->
                 <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition" data-section="gallery" data-id="gallery">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-2">
-                        <h3 class="font-bold text-slate-700 text-sm uppercase tracking-wider">Galería de Imágenes (URLs por comas)</h3>
+                        <h3 class="font-bold text-slate-700 text-sm uppercase tracking-wider">Galería de Imágenes (Global - URLs separadas por comas)</h3>
                         <div class="flex items-center gap-3 self-end sm:self-auto">
                             <label class="text-xs bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg text-slate-600 font-bold cursor-pointer transition border border-slate-200 shadow-sm"><input type="checkbox" id="check-gallery" checked class="rounded border-slate-300 text-indigo-600 mr-1"> Incluir</label>
                             <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm transition select-none flex items-center gap-1">⋮⋮ Mover</span>
                         </div>
                     </div>
-                    <textarea id="input-gallery" class="w-full border border-slate-300 rounded-lg p-2 text-sm h-20 resize-none outline-none focus:border-indigo-500" placeholder="URL1, URL2, URL3..."></textarea>
+                    <textarea id="input-gallery" class="w-full border border-indigo-200 bg-indigo-50/30 rounded-lg p-2 text-sm h-20 resize-none outline-none focus:border-indigo-500" placeholder="URL1, URL2, URL3..."></textarea>
                 </div>
 
-                <!-- MÓDULO 8: CONCLUSIÓN -->
+                <!-- MÓDULO 8: CONCLUSIÓN Y ORGANIZADORES -->
                 <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition" data-section="conclusion" data-id="conclusion">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-2">
                         <input type="text" id="title-sec-conclusion" class="font-bold text-slate-700 bg-transparent border-b border-dashed border-slate-300 focus:border-indigo-500 outline-none text-sm uppercase tracking-wider w-full sm:w-2/3" value="Conclusión">
@@ -227,7 +227,7 @@
                     </div>
                     <div class="space-y-4">
                         <div class="flex justify-between items-center mb-1">
-                            <label class="block text-xs font-bold text-slate-400">Contenido de Cierre:</label>
+                            <label class="block text-xs font-bold text-slate-400">Contenido de Cierre (Traducible):</label>
                             <div class="flex gap-2">
                                 <button onclick="insertMarkdownTool('input-conclusion', 'link')" class="text-xs text-indigo-600 font-bold hover:underline">🔗 Enlace</button>
                                 <button onclick="insertMarkdownTool('input-conclusion', 'btn')" class="text-xs text-purple-600 font-bold hover:underline">✨ Botón</button>
@@ -236,8 +236,11 @@
                         <textarea id="input-conclusion" class="w-full border border-slate-300 rounded-lg p-2 text-sm h-24 resize-none outline-none focus:border-indigo-500"></textarea>
                         
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Entidades Organizadoras (Una por línea):</label>
-                            <textarea id="input-orgs" class="w-full border border-slate-300 rounded-lg p-2 text-sm h-20 resize-none outline-none focus:border-indigo-500"></textarea>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Entidades Organizadoras (¡Global! NO se traduce):</label>
+                                <button onclick="insertMarkdownTool('input-orgs', 'link')" class="text-xs text-indigo-600 font-bold hover:underline">🔗 Insertar Enlace</button>
+                            </div>
+                            <textarea id="input-orgs" class="w-full border border-indigo-200 bg-indigo-50/30 rounded-lg p-2 text-sm h-20 resize-none outline-none focus:border-indigo-500"></textarea>
                         </div>
                     </div>
                 </div>
@@ -257,7 +260,7 @@
                     <span>🚀</span> Código Generado Listo para Django
                 </h2>
                 
-                <button onclick="generateOutputHTML()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow transition duration-200 mb-4">
+                <button onclick="generateOutputHTML()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl shadow transition duration-200 mb-4">
                     ⚡ Compilar Publicación Multilingüe
                 </button>
 
@@ -272,15 +275,16 @@
     </main>
 
     <script>
+        // DATA DE CATEGORÍAS
         const categoriesData = {
-            "Otras Actividades": { color: "#1d4ed8", bg_badge: "#eff6ff", border: "#dbeafe", badge: { es: "Informe de Actividad / Otras Actividades", en: "Activity Report / Other Activities", pt: "Relatório de Atividade / Outras Atividades" } },
+            "Otras Actividades": { color: "#1d4ed8", bg_badge: "#eff6ff", border: "#dbeafe", badge: { es: "Informe de Actividad", en: "Activity Report", pt: "Relatório de Atividade" } },
             "Clubs de Investigación": { color: "#059669", bg_badge: "#ecfdf5", border: "#a7f3d0", badge: { es: "Club de Investigación Científica", en: "Scientific Research Club", pt: "Clube de Pesquisa Científica" } },
             "Clínica de Datos": { color: "#4f46e5", bg_badge: "#f5f3ff", border: "#c7d2fe", badge: { es: "Clínica de Datos e Información", en: "Data and Information Clinic", pt: "Clínica de Dados e Informação" } },
             "Sesiones de Aprendizaje Asistido": { color: "#7c3aed", bg_badge: "#f5f3ff", border: "#ddd6fe", badge: { es: "Aprendizaje Asistido y Tutoría", en: "Assisted Learning and Tutoring", pt: "Aprendizagem Assistida e Tutoria" } },
             "Mentoría": { color: "#d97706", bg_badge: "#fef3c7", border: "#fde68a", badge: { es: "Programa de Mentoría Científica", en: "Scientific Mentorship Program", pt: "Programa de Mentoria Científica" } },
-            "Talleres": { color: "#0284c7", bg_badge: "#f0f9ff", border: "#bae6fd", badge: { es: "Taller Práctico Presencial / Híbrido", en: "Practical Workshop", pt: "Workshop Prático" } },
+            "Talleres": { color: "#0284c7", bg_badge: "#f0f9ff", border: "#bae6fd", badge: { es: "Taller Práctico", en: "Practical Workshop", pt: "Workshop Prático" } },
             "Webinarios": { color: "#0891b2", bg_badge: "#ecfeff", border: "#a5f3fc", badge: { es: "Webinario Abierto en Línea", en: "Open Online Webinar", pt: "Webinar Online Aberto" } },
-            "Twinning": { color: "#e11d48", bg_badge: "#fff1f2", border: "#fecdd3", badge: { es: "Twinning / Hermanamiento Científico", en: "Twinning / Scientific Partnership", pt: "Twinning / Parceria Científica" } }
+            "Twinning": { color: "#e11d48", bg_badge: "#fff1f2", border: "#fecdd3", badge: { es: "Twinning / Hermanamiento", en: "Twinning / Scientific Partnership", pt: "Twinning / Parceria Científica" } }
         };
 
         const defaultSectionTitles = {
@@ -289,10 +293,14 @@
             pt: { "title-sec-summary": "Resumo da atividade", "title-sec-logistics": "Detalhes Gerais e Logística", "title-sec-bullets": "Resultados de Destaque", "title-sec-conclusion": "Conclusão" }
         };
 
+        // CAMPOS GLOBALES (No se sobreescriben al cambiar de idioma)
+        const GLOBAL_FIELDS = ['url-main-img', 'input-video', 'input-gallery', 'input-orgs'];
+
         let translations = { es: {}, en: {}, pt: {} };
         let currentLang = 'es';
         let dynamicSectionCounter = 0;
 
+        // INICIALIZACIÓN SILENCIOSA
         function silentInitApp() {
             const catKey = document.getElementById('catCombo').value;
             ['es', 'en', 'pt'].forEach(lang => {
@@ -301,13 +309,15 @@
                 translations[lang]["input-badge"] = categoriesData[catKey].badge[lang];
             });
 
-            // Datos base
+            // Datos de Ejemplo iniciales
             translations.es["input-title"] = "Informe de la Reunión Anual TGHN LAC 2026";
             translations.es["input-summary"] = "Los días 1 y 2 de julio de 2026, los representantes de The Global Health Network se reunieron en la [Universidad Autónoma de Santo Domingo (UASD)](https://uasd.edu.do) para celebrar su reunión anual. [btn:Ver Agenda Completa](https://tghn.org/agenda)";
-            translations.es["input-logistics"] = "📅 Fecha: 1 y 2 de julio de 2026\n📍 Lugar: Universidad Autónoma de Santo Domingo (UASD), República Dominicana.";
-            translations.es["input-bullets"] = "• Consolidación de los Research Clubs como estrategia regional.\n• Impulsar grupos de trabajo multinacionales.";
-            translations.es["input-conclusion"] = "La Reunión Anual reafirmó que la colaboración regional continúa siendo el principal motor.";
-            translations.es["input-orgs"] = "• Fundación Etikos\n• The Global Health Network Latin America and the Caribbean (TGHN LAC)";
+            translations.es["input-logistics"] = "📅 Fecha: 1 y 2 de julio de 2026\n📍 Lugar: UASD, República Dominicana.";
+            translations.es["input-bullets"] = "• Consolidación de los Research Clubs regionales.\n• Lanzamiento de la plataforma unificada.";
+            translations.es["input-conclusion"] = "La jornada concluyó con un firme compromiso de soporte técnico mutuo interinstitucional.";
+            
+            // Llenar campos globales
+            document.getElementById('input-orgs').value = "• Fundación Etikos\n• The Global Health Network Latin America (TGHN LAC)";
 
             loadState(currentLang);
         }
@@ -321,7 +331,9 @@
                 translations[lang]["input-badge"] = categoriesData[catKey].badge[lang];
             });
             const inputs = document.querySelectorAll('#dragContainer input[type="text"], #dragContainer textarea');
-            inputs.forEach(input => { if(!input.id.includes("title-sec") && input.id !== "input-badge" && input.id !== "url-main-img") input.value = ""; });
+            inputs.forEach(input => { 
+                if(!input.id.includes("title-sec") && input.id !== "input-badge") input.value = ""; 
+            });
             loadState(currentLang);
         }
 
@@ -333,14 +345,23 @@
             icon.innerText = content.classList.contains('guide-hidden') ? '▼' : '▲';
         }
 
+        // CONTROL MULTILINGÜE
         function saveCurrentState() {
             const inputs = document.querySelectorAll('#dragContainer input[type="text"], #dragContainer textarea');
-            inputs.forEach(input => { translations[currentLang][input.id] = input.value; });
+            inputs.forEach(input => { 
+                if (!GLOBAL_FIELDS.includes(input.id)) {
+                    translations[currentLang][input.id] = input.value; 
+                }
+            });
         }
 
         function loadState(lang) {
             const inputs = document.querySelectorAll('#dragContainer input[type="text"], #dragContainer textarea');
-            inputs.forEach(input => { input.value = translations[lang][input.id] || ""; });
+            inputs.forEach(input => { 
+                if (!GLOBAL_FIELDS.includes(input.id)) {
+                    input.value = translations[lang][input.id] || ""; 
+                }
+            });
         }
 
         function switchLanguage(lang) {
@@ -348,7 +369,7 @@
             currentLang = lang;
             ['es', 'en', 'pt'].forEach(l => {
                 document.getElementById(`btn-lang-${l}`).className = l === lang ? 
-                    "flex-1 py-2.5 px-3 rounded-lg font-bold border-2 border-indigo-600 bg-indigo-50 text-indigo-700 text-sm transition" : 
+                    "flex-1 py-2.5 px-3 rounded-lg font-bold border-2 border-indigo-600 bg-indigo-600 text-white text-sm transition" : 
                     "flex-1 py-2.5 px-3 rounded-lg font-semibold border-2 border-slate-200 bg-white text-slate-600 text-sm hover:border-slate-300 transition";
             });
             loadState(lang);
@@ -383,18 +404,21 @@
         }
 
         // ==========================================
-        // SISTEMA DE TRADUCCIÓN AUTOMÁTICA CON API
+        // TRADUCCIÓN AUTOMÁTICA (API DE GOOGLE)
         // ==========================================
-        async function fetchTranslation(text, targetLang) {
+        async function fetchGoogleTranslation(text, targetLang) {
             if (!text || text.trim() === '') return '';
             
-            // Proteger sintaxis de enlaces [texto](url) y botones [btn:texto](url)
+            // Extraer y proteger enlaces/botones para que Google no los rompa
             let linkMap = [];
             let cleanText = text.replace(/\[(btn:[^\]]+|[^\]]+)\]\(([^)]+)\)/g, (match, p1, p2) => {
                 let index = linkMap.length;
                 linkMap.push({ isBtn: p1.startsWith('btn:'), label: p1.replace('btn:', ''), url: p2 });
-                return ` [[LINK_${index}]] `;
+                return ` __LINK${index}__ `;
             });
+
+            // NUEVO: Función para pausar peticiones y evitar bloqueos de Google
+            const delay = ms => new Promise(res => setTimeout(res, ms));
 
             try {
                 let paragraphs = cleanText.split('\n');
@@ -405,38 +429,54 @@
                         translatedParagraphs.push('');
                         continue;
                     }
-                    let res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(para)}&langpair=es|${targetLang}`);
+                    
+                    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=es&tl=${targetLang}&dt=t&q=${encodeURIComponent(para)}`;
+                    let res = await fetch(url);
                     let json = await res.json();
-                    let transPara = (json && json.responseData && json.responseData.translatedText) ? json.responseData.translatedText : para;
+                    
+                    let transPara = "";
+                    if (json && json[0]) {
+                        json[0].forEach(item => {
+                            if (item[0]) transPara += item[0];
+                        });
+                    } else {
+                        transPara = para;
+                    }
                     translatedParagraphs.push(transPara);
+                    
+                    // CLAVE: Pausa de 300ms entre párrafos
+                    await delay(300);
                 }
 
                 let translatedFull = translatedParagraphs.join('\n');
 
-                // Restaurar sintaxis con etiquetas traducidas
+                // Traducir las etiquetas de los enlaces guardados
                 for (let i = 0; i < linkMap.length; i++) {
                     let item = linkMap[i];
                     let labelTrans = item.label;
                     try {
-                        let lRes = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(item.label)}&langpair=es|${targetLang}`);
+                        const lUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=es&tl=${targetLang}&dt=t&q=${encodeURIComponent(item.label)}`;
+                        let lRes = await fetch(lUrl);
                         let lJson = await lRes.json();
-                        if (lJson && lJson.responseData && lJson.responseData.translatedText) {
-                            labelTrans = lJson.responseData.translatedText;
+                        if (lJson && lJson[0] && lJson[0][0] && lJson[0][0][0]) {
+                            labelTrans = lJson[0][0][0];
                         }
                     } catch(e){}
 
                     let restoredMarkdown = item.isBtn ? `[btn:${labelTrans}](${item.url})` : `[${labelTrans}](${item.url})`;
-                    let regexPlaceholder = new RegExp(`\\[\\s*\\[\\s*LINK_${i}\\s*\\]\\s*\\]`, 'gi');
+                    let regexPlaceholder = new RegExp(`__LINK${i}__`, 'gi');
                     translatedFull = translatedFull.replace(regexPlaceholder, restoredMarkdown);
+                    
+                    // Pausa de 300ms para los enlaces
+                    await delay(300);
                 }
 
                 return translatedFull;
             } catch (e) {
-                console.error('Error de traducción:', e);
-                return text;
+                console.error('Error traduciendo con Google API:', e);
+                return text; 
             }
         }
-
         async function runAutoTranslationAPI() {
             saveCurrentState();
             const btn = document.getElementById('btn-auto-translate');
@@ -448,21 +488,26 @@
 
             const keysToTranslate = Object.keys(translations.es);
             
-            // Traducir a Inglés (EN)
+            // Campos que NO deben traducirse ni pisarse automáticamente
+            const noTranslateFields = ['input-badge']; 
+
+            // Traducir a INGLÉS
             for (let key of keysToTranslate) {
+                if (noTranslateFields.includes(key)) continue;
                 if (key.includes('title-sec') && defaultSectionTitles.en[key]) {
                     translations.en[key] = defaultSectionTitles.en[key];
                 } else if (translations.es[key]) {
-                    translations.en[key] = await fetchTranslation(translations.es[key], 'en');
+                    translations.en[key] = await fetchGoogleTranslation(translations.es[key], 'en');
                 }
             }
 
-            // Traducir a Portugués (PT)
+            // Traducir a PORTUGUÉS
             for (let key of keysToTranslate) {
+                if (noTranslateFields.includes(key)) continue;
                 if (key.includes('title-sec') && defaultSectionTitles.pt[key]) {
                     translations.pt[key] = defaultSectionTitles.pt[key];
                 } else if (translations.es[key]) {
-                    translations.pt[key] = await fetchTranslation(translations.es[key], 'pt');
+                    translations.pt[key] = await fetchGoogleTranslation(translations.es[key], 'pt');
                 }
             }
 
@@ -471,7 +516,7 @@
             status.classList.add('hidden');
 
             loadState(currentLang);
-            alert("✨ ¡Traducción automática completada con éxito para Inglés y Portugués! Puedes revisar o pulir el texto en las pestañas EN y PT.");
+            alert("✨ ¡Traducción automática de Google completada! Organismos y Enlaces fueron protegidos.");
         }
 
         // CRECIMIENTO INFINITO MODULAR
@@ -539,34 +584,51 @@
             }, { offset: -Infinity }).element;
         }
 
-        // PARSER SINTÁCTICO
+        // PARSER AVANZADO SINTAXIS (LINKS Y BOTONES)
         function parseAdvancedMarkdown(text, catColor) {
             if (!text) return "";
             let formatted = text;
+            
+            // Reemplazar botones
             formatted = formatted.replace(/\[btn:([^\]]+)\]\(([^)]+)\)/g, function(match, label, url) {
                 return `<div style="text-align: center; margin: 25px 0 30px 0;"><a href="${url.trim()}" target="_blank" style="display: inline-block; background-color: ${catColor}; color: white; padding: 11px 32px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.06); transition: opacity 0.2s;">${label.trim()}</a></div>`;
             });
+            
+            // Reemplazar enlaces
             formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(match, label, url) {
                 return `<a href="${url.trim()}" target="_blank" style="color: ${catColor}; text-decoration: underline; font-weight: 600;">${label.trim()}</a>`;
             });
+            
+            // NUEVO: Forzar saltos de línea reales en HTML para que Django CMS no los junte
+            formatted = formatted.replace(/\n/g, '<br>');
+            
             return formatted;
         }
 
-        // COMPILADOR MÁSTER CON IDIOMAS PERMANENTES
+        // COMPILADOR MÁSTER HTML
         function generateOutputHTML() {
             saveCurrentState();
             const cat = categoriesData[document.getElementById('catCombo').value];
+            
+            const hasEnglish = translations.en["input-title"] && translations.en["input-title"].trim() !== "";
+            const hasPortuguese = translations.pt["input-title"] && translations.pt["input-title"].trim() !== "";
             const uniqueId = "tghn_" + Math.floor(Math.random() * 100000);
+
+            // Obtener variables globales directamente del DOM
+            const globalMainImg = document.getElementById('url-main-img').value.trim();
+            const globalVideo = document.getElementById('input-video').value.trim();
+            const globalGallery = document.getElementById('input-gallery').value.trim();
+            const globalOrgsText = document.getElementById('input-orgs').value.trim();
 
             let html = `<div id="${uniqueId}" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; font-size: 16px; line-height: 1.7; max-width: 1100px; margin: 0 auto; padding: 20px; background-color: #fcfcfd;">\n\n`;
 
             if (document.getElementById('check-lang-buttons').checked) {
-                html += `    <!-- BARRA INTERACTIVA PERMANENTE (TRES IDIOMAS) -->
+                html += `    <!-- CONTROLADORES SEGMENTADOS DE IDIOMA -->
     <div style="display: flex; justify-content: center; gap: 4px; margin-bottom: 45px; background-color: #f1f5f9; padding: 5px; border-radius: 30px; max-width: 320px; margin-left: auto; margin-right: auto; border: 1px solid #e2e8f0; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);">
-        <button onclick="tghnSwitchView('${uniqueId}', 'es', this)" style="flex: 1; background-color: #ffffff; color: #0f172a; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 700; font-size: 13px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.06); transition: all 0.2s ease;">Español</button>
-        <button onclick="tghnSwitchView('${uniqueId}', 'en', this)" style="flex: 1; background-color: transparent; color: #64748b; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s ease;">English</button>
-        <button onclick="tghnSwitchView('${uniqueId}', 'pt', this)" style="flex: 1; background-color: transparent; color: #64748b; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s ease;">Português</button>
-    </div>\n\n`;
+        <button onclick="tghnSwitchView('${uniqueId}', 'es', this)" style="flex: 1; background-color: #ffffff; color: #0f172a; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 700; font-size: 13px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.06); transition: all 0.2s ease;">Español</button>\n`;
+                if(hasEnglish) html += `        <button onclick="tghnSwitchView('${uniqueId}', 'en', this)" style="flex: 1; background-color: transparent; color: #64748b; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s ease;">English</button>\n`;
+                if(hasPortuguese) html += `        <button onclick="tghnSwitchView('${uniqueId}', 'pt', this)" style="flex: 1; background-color: transparent; color: #64748b; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s ease;">Português</button>\n`;
+                html += `    </div>\n\n`;
             }
 
             const modulesInDOM = [...container.querySelectorAll('.draggable-section')];
@@ -600,15 +662,12 @@
         </div>\n\n`;
                     }
 
-                    if (secType === 'main-image') {
-                        const imgUrl = document.getElementById('url-main-img').value.trim();
-                        if(imgUrl) {
-                            blockHtml += `        <!-- IMAGEN ESTABLE -->
+                    if (secType === 'main-image' && globalMainImg) {
+                        blockHtml += `        <!-- IMAGEN DESTACADA ESTABLE -->
         <div style="margin-bottom: 40px; text-align: center;">
-            <img src="${imgUrl}" alt="Imagen TGHN" style="width: 100%; max-width: 900px; height: 380px; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);" />
+            <img src="${globalMainImg}" alt="Imagen TGHN" style="width: 100%; height: auto; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);" />
             ${translations[langCode]["caption-main-img"] ? `<em style="display: block; font-size: 14px; color: #64748b; margin-top: 10px;">${translations[langCode]["caption-main-img"]}</em>` : ''}
         </div>\n\n`;
-                        }
                     }
 
                     if (secType === 'logistics') {
@@ -637,36 +696,31 @@
         </div>\n\n`;
                     }
 
-                    if (secType === 'video') {
-                        let rawVid = document.getElementById('input-video').value.trim();
-                        if(rawVid) {
-                            let vidId = rawVid.includes('v=') ? rawVid.split('v=')[1].split('&')[0] : (rawVid.includes('youtu.be/') ? rawVid.split('youtu.be/')[1].split('?')[0] : rawVid);
-                            blockHtml += `        <!-- VIDEO EMBED YOUTUBE -->
+                    if (secType === 'video' && globalVideo) {
+                        let vidId = globalVideo.includes('v=') ? globalVideo.split('v=')[1].split('&')[0] : (globalVideo.includes('youtu.be/') ? globalVideo.split('youtu.be/')[1].split('?')[0] : globalVideo);
+                        blockHtml += `        <!-- VIDEO EMBED YOUTUBE -->
         <div style="border-top: 1px solid #cbd5e1; padding-top: 35px; margin-bottom: 40px; text-align: center;">
             <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
                 <iframe src="https://www.youtube.com/embed/${vidId}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" allowfullscreen></iframe>
             </div>
         </div>\n\n`;
-                        }
                     }
 
-                    if (secType === 'gallery') {
+                    if (secType === 'gallery' && globalGallery) {
                         let gridHtml = '';
-                        document.getElementById('input-gallery').value.split(',').forEach(url => {
+                        globalGallery.split(',').forEach(url => {
                             if(url.trim()) gridHtml += `                <div style="text-align: center;"><img style="width: 100%; height: 220px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0;" src="${url.trim()}" /></div>\n`;
                         });
-                        if(gridHtml) {
-                            blockHtml += `        <!-- GALERÍA GRID -->
+                        blockHtml += `        <!-- GALERÍA GRID -->
         <div style="border-top: 1px solid #cbd5e1; padding-top: 35px; margin-bottom: 40px;">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">\n${gridHtml}            </div>
         </div>\n\n`;
-                        }
                     }
 
                     if (secType === 'conclusion') {
                         let orgsHtml = '';
-                        if(translations[langCode]["input-orgs"]) {
-                            translations[langCode]["input-orgs"].split('\n').forEach(line => {
+                        if(globalOrgsText) {
+                            globalOrgsText.split('\n').forEach(line => {
                                 if(line.trim()) {
                                     const parsedOrg = parseAdvancedMarkdown(line.replace('•','').replace('*','').trim(), cat.color);
                                     orgsHtml += `                <p style="margin: 0 0 8px 0; color: rgba(255,255,255,0.85); font-size: 15px;">• ${parsedOrg}</p>\n`;
@@ -674,12 +728,18 @@
                             });
                         }
                         const parsedConclusion = parseAdvancedMarkdown(translations[langCode][`input-${id}`], cat.color);
-                        blockHtml += `        <!-- CONCLUSIÓN -->
+                        
+                        // NUEVO: Traducción automática controlada de la palabra "Organización"
+                        let orgTitle = "Organización";
+                        if(langCode === 'en') orgTitle = "Organization";
+                        if(langCode === 'pt') orgTitle = "Organização";
+
+                        blockHtml += `        <!-- CONCLUSIÓN FINALES -->
         <div style="border-top: 1px solid #cbd5e1; background-color: #0f172a; color: white; padding: 45px 30px; text-align: center; border-radius: 12px; margin-top: 20px;">
             <h2 style="font-size: 26px; color: #ffffff; margin-bottom: 15px; font-weight: 800;">${translations[langCode][`title-sec-${id}`]}</h2>
             <p style="color: #94a3b8; max-width: 850px; margin: 0 auto 30px auto; font-size: 16px; text-align: justify; line-height: 1.8;">${parsedConclusion}</p>
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #334155; text-align: left;">
-                <strong style="color: #ffffff; font-size: 16px; display: block; margin-bottom: 12px;">Organización y Soporte Técnico:</strong>\n${orgsHtml}            </div>
+                <strong style="color: #ffffff; font-size: 16px; display: block; margin-bottom: 12px;">${orgTitle}:</strong>\n${orgsHtml}            </div>
         </div>\n\n`;
                     }
                 });
@@ -687,10 +747,9 @@
                 return blockHtml;
             };
 
-            html += `    <!-- CONTENEDORES DE IDIOMAS INTEGRADOS -->\n`;
             html += `    <div class="${uniqueId}_lang_block" id="${uniqueId}_es" style="display: block;">\n${renderBlockByLanguage('es')}    </div>\n\n`;
-            html += `    <div class="${uniqueId}_lang_block" id="${uniqueId}_en" style="display: none;">\n${renderBlockByLanguage('en')}    </div>\n\n`;
-            html += `    <div class="${uniqueId}_lang_block" id="${uniqueId}_pt" style="display: none;">\n${renderBlockByLanguage('pt')}    </div>\n\n`;
+            if(hasEnglish) html += `    <div class="${uniqueId}_lang_block" id="${uniqueId}_en" style="display: none;">\n${renderBlockByLanguage('en')}    </div>\n\n`;
+            if(hasPortuguese) html += `    <div class="${uniqueId}_lang_block" id="${uniqueId}_pt" style="display: none;">\n${renderBlockByLanguage('pt')}    </div>\n\n`;
 
             html += `    <!-- CONTROLADORES DINÁMICOS -->
     <script>
@@ -709,6 +768,7 @@
             document.getElementById('outputHTML').value = html;
         }
 
+        // INICIALIZAR Y ASEGURAR EVENTOS
         window.onload = function() {
             silentInitApp();
         };
@@ -718,7 +778,7 @@
             module.addEventListener('dragend', handleDragEnd);
         });
 
-        function copyToClipboard() { document.getElementById("outputHTML").select(); document.execCommand("copy"); alert("¡Código Modular v6.0 copiado con éxito!"); }
+        function copyToClipboard() { document.getElementById("outputHTML").select(); document.execCommand("copy"); alert("¡Código V7.0 copiado con éxito!"); }
     </script>
 </body>
 </html>
