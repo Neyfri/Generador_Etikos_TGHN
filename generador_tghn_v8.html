@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador CMS TGHN v8.1 — Fundación Etikos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .draggable-section.dragging { opacity: 0.4; border: 2px dashed #4f46e5; background-color: #f5f3ff; }
+        .drag-handle { cursor: grab; }
+        .drag-handle:active { cursor: grabbing; }
+        
+        /* Estilos del Editor Visual CMS */
+        .editor-container { border: 1px solid #cbd5e1; border-radius: 0.5rem; overflow: hidden; background: #fff; }
+        .editor-toolbar { background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+        .editor-btn { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px 10px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;}
+        .editor-btn:hover { background: #e2e8f0; color: #0f172a; }
+        /* Estilos del Editor Visual CMS */
+        .editor-content { 
+            min-height: 100px; 
+            padding: 15px; 
+            outline: none; 
+            font-size: 15px; 
+            line-height: 1.6; 
+            color: #1e293b; 
+            overflow-x: auto; /* NUEVO: Crea un scroll interno si el contenido es muy ancho */
+            max-width: 100%;
+        }
+        .editor-content:focus { background: #fdfdfe; }
+        
+        /* ... tus otros estilos (ul, ol, a, btn) se quedan igual ... */
+
+        /* Estilos para Tablas en el Editor Visual */
+        .editor-content table { 
+            width: 100%; 
+            max-width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 10px; 
+            margin-bottom: 15px; 
+        }
+        .editor-content th, .editor-content td { 
+            border: 1px solid #cbd5e1; 
+            padding: 8px; 
+            text-align: left; 
+            min-width: 100px; /* Evita que las columnas se aplasten demasiado */
+        }
+        .editor-content th { background-color: #f8fafc; font-weight: bold; }
+        
+        /* Estilos base dentro del editor visual para simular TGHN */
+        .editor-content ul { list-style-type: disc; padding-left: 20px; margin-bottom: 10px; }
+        .editor-content ol { list-style-type: decimal; padding-left: 20px; margin-bottom: 10px; }
+        .editor-content a { color: #1d4ed8; text-decoration: underline; }
+        .editor-content .tghn-visual-btn { display: inline-block; background-color: #1d4ed8; color: white; padding: 8px 24px; border-radius: 6px; font-weight: bold; text-decoration: none; margin: 10px 0; font-size: 14px;}
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen pb-12">
+
+    <!-- CABECERA -->
+    <header class="bg-slate-900 text-white py-6 px-8 shadow-md mb-8">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Generador CMS TGHN</h1>
+                <p class="text-emerald-400 text-sm mt-1 font-medium">Versión 8.1: Auto-Inclusión Inteligente, Organizadores Seguros y Compilador Reparado</p>
+            </div>
+            <button onclick="clearAllDataInteractive()" class="bg-red-600 hover:bg-red-500 text-white text-sm font-bold px-4 py-2 rounded-lg shadow transition">
+                🧹 Limpiar Todo (Nuevo Reporte)
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- COLUMNA IZQUIERDA: CONFIGURADOR VISUAL -->
+        <div class="lg:col-span-7 space-y-6">
+
+            <!-- SELECTORES DE CONTROL -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Categoría del Evento:</label>
+                        <select id="catCombo" onchange="handleCategoryChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium">
+                            <option value="Otras Actividades">📊 Otras Actividades</option>
+                            <option value="Clubs de Investigación">🌱 Clubs de Investigación</option>
+                            <option value="Clínica de Datos">📊 Clínica de Datos</option>
+                            <option value="Sesiones de Aprendizaje Asistido">📖 Sesiones de Aprendizaje Asistido</option>
+                            <option value="Mentoría">🤝 Mentoría</option>
+                            <option value="Talleres">🛠️ Talleres</option>
+                            <option value="Webinarios">🌐 Webinarios</option>
+                            <option value="Twinning">🤝 Twinning</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Idioma en edición actual:</label>
+                        <div class="flex gap-2">
+                            <button onclick="switchLanguage('es')" id="btn-lang-es" class="flex-1 py-2.5 px-3 rounded-lg font-bold border-2 border-indigo-600 bg-indigo-50 text-indigo-700 text-sm transition">ES</button>
+                            <button onclick="switchLanguage('en')" id="btn-lang-en" class="flex-1 py-2.5 px-3 rounded-lg font-bold border-2 border-slate-200 text-slate-600 text-sm hover:border-slate-300 transition">EN</button>
+                            <button onclick="switchLanguage('pt')" id="btn-lang-pt" class="flex-1 py-2.5 px-3 rounded-lg font-bold border-2 border-slate-200 text-slate-600 text-sm hover:border-slate-300 transition">PT</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOTÓN MAESTRO DE TRADUCCIÓN -->
+                <div class="pt-2">
+                    <button id="btn-auto-translate" onclick="runAutoTranslationAPI()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow transition duration-200 flex items-center justify-center gap-2 text-sm">
+                        <span>🤖</span> Traducir Todo Automáticamente a Inglés y Portugués
+                    </button>
+                    <p id="translate-status" class="text-xs text-center text-slate-500 mt-1.5 hidden">⏳ Traduciendo contenidos de forma segura, por favor espera...</p>
+                </div>
+            </div>
+
+            <!-- CONTENEDOR DRAG & DROP -->
+            <div id="dragContainer" class="space-y-4">
+                
+                <!-- MÓDULO 1: ENCABEZADO -->
+                <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 relative transition" data-section="header" data-id="header">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                        <h3 class="font-bold text-indigo-600 text-sm uppercase tracking-wider">Módulo 1: Encabezado y Píldora</h3>
+                        <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm transition select-none flex items-center gap-1">⋮⋮ Mover</span>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-xs font-bold text-slate-500 uppercase">Texto de la Píldora / Badge:</label>
+                                <button onclick="resetBadgeToOfficial()" class="text-[10px] bg-slate-200 hover:bg-slate-300 text-slate-700 px-2 py-0.5 rounded font-medium transition">🔄 Restaurar Oficial</button>
+                            </div>
+                            <input type="text" id="input-badge" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-indigo-500 font-medium text-indigo-700 bg-indigo-50/30">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1 uppercase">Título de la Publicación:</label>
+                            <input type="text" id="input-title" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-indigo-500 font-semibold text-slate-800">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MÓDULO 2: RESUMEN (CMS VISUAL) -->
+                <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition" data-section="summary" data-id="summary">
+                    <div class="flex justify-between border-b border-slate-100 pb-3 mb-4">
+                        <input type="text" id="title-sec-summary" class="font-bold text-slate-700 bg-transparent border-b border-dashed border-slate-300 focus:border-indigo-500 outline-none text-sm uppercase tracking-wider w-full sm:w-2/3" value="Resumen de la actividad">
+                        <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 transition">⋮⋮ Mover</span>
+                    </div>
+                    <div class="editor-container">
+                        <div class="editor-toolbar">
+                            <!-- Estilos Base -->
+                            <button type="button" class="editor-btn font-bold" onclick="formatDoc('bold')" title="Negrita">B</button>
+                            <button type="button" class="editor-btn italic font-serif" onclick="formatDoc('italic')" title="Cursiva">I</button>
+                            <button type="button" class="editor-btn underline" onclick="formatDoc('underline')" title="Subrayado">U</button>
+                            <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                            
+                            <!-- Alineación -->
+                            <button type="button" class="editor-btn" onclick="formatDoc('justifyLeft')" title="Izquierda">⬅️</button>
+                            <button type="button" class="editor-btn" onclick="formatDoc('justifyCenter')" title="Centrar">↔️</button>
+                            <button type="button" class="editor-btn" onclick="formatDoc('justifyRight')" title="Derecha">➡️</button>
+                            <button type="button" class="editor-btn" onclick="formatDoc('justifyFull')" title="Justificar">▤</button>
+                            <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                            
+                            <!-- Listas -->
+                            <button type="button" class="editor-btn" onclick="formatDoc('insertUnorderedList')" title="Viñetas">• Lista</button>
+                            <button type="button" class="editor-btn" onclick="formatDoc('insertOrderedList')" title="Lista Numerada">1. Lista</button>
+                            <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                            
+                            <!-- Color y Tamaño -->
+                            <input type="color" class="w-8 h-8 p-0 border-0 rounded cursor-pointer" oninput="formatDoc('foreColor', this.value)" title="Color de texto">
+                            <select class="editor-btn bg-transparent outline-none cursor-pointer" onchange="formatDoc('fontSize', this.value); this.selectedIndex=0;" title="Tamaño de fuente">
+                                <option value="" disabled selected>Tamaño</option>
+                                <option value="2">Pequeño</option>
+                                <option value="3">Normal</option>
+                                <option value="4">Mediano</option>
+                                <option value="5">Grande</option>
+                                <option value="6">Enorme</option>
+                            </select>
+                            <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                            
+                            <!-- Enlaces, Tablas y Botones -->
+                            <button type="button" class="editor-btn" onclick="insertVisualTable()" title="Insertar Tabla">📊 Tabla</button>
+                            <button type="button" class="editor-btn" onclick="insertVisualLink()" title="Insertar Enlace">🔗 Enlace</button>
+                            <button type="button" class="editor-btn text-indigo-600 border-indigo-200 bg-indigo-50" onclick="insertVisualButton()" title="Insertar Botón TGHN">🔘 Botón TGHN</button>
+                        </div>
+                        <div id="input-summary" class="editor-content" contenteditable="true" placeholder="Redacta el contenido aquí..."></div>
+                    </div>
+                </div>
+
+                <!-- MÓDULO 3: IMAGEN DESTACADA (GLOBAL) -->
+                <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition" data-section="main-image" data-id="main-image">
+                    <div class="flex justify-between border-b border-slate-100 pb-3 mb-4">
+                        <h3 class="font-bold text-slate-700 text-sm uppercase tracking-wider">Imagen Destacada (Global)</h3>
+                        <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">⋮⋮ Mover</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-indigo-600 mb-1">URL de la Imagen (Fija):</label>
+                            <input type="text" id="url-main-img" class="w-full border border-indigo-200 bg-indigo-50/30 rounded-lg p-2 text-sm outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 mb-1">Leyenda (Traducible):</label>
+                            <input type="text" id="caption-main-img" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MÓDULO 4: LOGÍSTICA (RESTAURADO) -->
+                <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition" data-section="logistics" data-id="logistics">
+                    <div class="flex justify-between border-b border-slate-100 pb-3 mb-4">
+                        <input type="text" id="title-sec-logistics" class="font-bold text-slate-700 bg-transparent border-b border-dashed border-slate-300 outline-none text-sm uppercase w-full sm:w-2/3" value="Detalles Generales y Logística">
+                        <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">⋮⋮ Mover</span>
+                    </div>
+                    <div class="editor-container">
+                        <div class="editor-toolbar">
+                            <!-- Estilos Base -->
+                            <button type="button" class="editor-btn font-bold" onclick="formatDoc('bold')" title="Negrita">B</button>
+                            <button type="button" class="editor-btn italic font-serif" onclick="formatDoc('italic')" title="Cursiva">I</button>
+                            <button type="button" class="editor-btn underline" onclick="formatDoc('underline')" title="Subrayado">U</button>
+                            <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                            
+                            <!-- Alineación -->
+                            <button type="button" class="editor-btn" onclick="formatDoc('justifyLeft')" title="Izquierda">⬅️</button>
+                            <button type="button" class="editor-btn" onclick="formatDoc('justifyCenter')" title="Centrar">↔️</button>
+                            <button type="button" class="editor-btn" onclick="formatDoc('justifyRight')" title="Derecha">➡️</button>
+                            <button type="button" class="editor-btn" onclick="formatDoc('justifyFull')" title="Justificar">▤</button>
+                            <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                            
+                            <!-- Listas -->
+                            <button type="button" class="editor-btn" onclick="formatDoc('insertUnorderedList')" title="Viñetas">• Lista</button>
+                            <button type="button" class="editor-btn" onclick="formatDoc('insertOrderedList')" title="Lista Numerada">1. Lista</button>
+                            <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                            
+                            <!-- Color y Tamaño -->
+                            <input type="color" class="w-8 h-8 p-0 border-0 rounded cursor-pointer" oninput="formatDoc('foreColor', this.value)" title="Color de texto">
+                            <select class="editor-btn bg-transparent outline-none cursor-pointer" onchange="formatDoc('fontSize', this.value); this.selectedIndex=0;" title="Tamaño de fuente">
+                                <option value="" disabled selected>Tamaño</option>
+                                <option value="2">Pequeño</option>
+                                <option value="3">Normal</option>
+                                <option value="4">Mediano</option>
+                                <option value="5">Grande</option>
+                                <option value="6">Enorme</option>
+                            </select>
+                            <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                            
+                            <!-- Enlaces, Tablas y Botones -->
+                            <button type="button" class="editor-btn" onclick="insertVisualTable()" title="Insertar Tabla">📊 Tabla</button>
+                            <button type="button" class="editor-btn" onclick="insertVisualLink()" title="Insertar Enlace">🔗 Enlace</button>
+                            <button type="button" class="editor-btn text-indigo-600 border-indigo-200 bg-indigo-50" onclick="insertVisualButton()" title="Insertar Botón TGHN">🔘 Botón TGHN</button>
+                        </div>
+                        <div id="input-logistics" class="editor-content min-h-[80px]" contenteditable="true"></div>
+                    </div>
+                </div>
+
+                <!-- MÓDULO 5: RESULTADOS / VIÑETAS (CMS VISUAL) -->
+                <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition" data-section="bullets" data-id="bullets">
+                    <div class="flex justify-between border-b border-slate-100 pb-3 mb-4">
+                        <input type="text" id="title-sec-bullets" class="font-bold text-slate-700 bg-transparent border-b border-dashed border-slate-300 outline-none text-sm uppercase w-full sm:w-2/3" value="Resultados Destacados">
+                        <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">⋮⋮ Mover</span>
+                    </div>
+                    <div class="editor-container">
+                        <div class="editor-toolbar">
+                            <!-- Estilos Base -->
+                            <button type="button" class="editor-btn font-bold" onclick="formatDoc('bold')" title="Negrita">B</button>
+                            <button type="button" class="editor-btn italic font-serif" onclick="formatDoc('italic')" title="Cursiva">I</button>
+                            <button type="button" class="editor-btn underline" onclick="formatDoc('underline')" title="Subrayado">U</button>
+                            <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                            
+                            <!-- Alineación -->
+                            <button type="button" class="editor-btn" onclick="formatDoc('justifyLeft')" title="Izquierda">⬅️</button>
+                            <button type="button" class="editor-btn" onclick="formatDoc('justifyCenter')" title="Centrar">↔️</button>
+                            <button type="button" class="editor-btn" onclick="formatDoc('justifyRight')" title="Derecha">➡️</button>
+                            <button type="button" class="editor-btn" onclick="formatDoc('justifyFull')" title="Justificar">▤</button>
+                            <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                            
+                            <!-- Listas -->
+                            <button type="button" class="editor-btn" onclick="formatDoc('insertUnorderedList')" title="Viñetas">• Lista</button>
+                            <button type="button" class="editor-btn" onclick="formatDoc('insertOrderedList')" title="Lista Numerada">1. Lista</button>
+                            <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                            
+                            <!-- Color y Tamaño -->
+                            <input type="color" class="w-8 h-8 p-0 border-0 rounded cursor-pointer" oninput="formatDoc('foreColor', this.value)" title="Color de texto">
+                            <select class="editor-btn bg-transparent outline-none cursor-pointer" onchange="formatDoc('fontSize', this.value); this.selectedIndex=0;" title="Tamaño de fuente">
+                                <option value="" disabled selected>Tamaño</option>
+                                <option value="2">Pequeño</option>
+                                <option value="3">Normal</option>
+                                <option value="4">Mediano</option>
+                                <option value="5">Grande</option>
+                                <option value="6">Enorme</option>
+                            </select>
+                            <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                            
+                            <!-- Enlaces, Tablas y Botones -->
+                            <button type="button" class="editor-btn" onclick="insertVisualTable()" title="Insertar Tabla">📊 Tabla</button>
+                            <button type="button" class="editor-btn" onclick="insertVisualLink()" title="Insertar Enlace">🔗 Enlace</button>
+                            <button type="button" class="editor-btn text-indigo-600 border-indigo-200 bg-indigo-50" onclick="insertVisualButton()" title="Insertar Botón TGHN">🔘 Botón TGHN</button>
+                        </div>
+                        <div id="input-bullets" class="editor-content" contenteditable="true"><ul><li>Escribe tus resultados aquí...</li></ul></div>
+                    </div>
+                </div>
+
+                <!-- MÓDULO 6: YOUTUBE (GLOBAL) (RESTAURADO) -->
+                <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition" data-section="video" data-id="video">
+                    <div class="flex justify-between border-b border-slate-100 pb-3 mb-4">
+                        <h3 class="font-bold text-slate-700 text-sm uppercase tracking-wider">Video de YouTube (Global)</h3>
+                        <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">⋮⋮ Mover</span>
+                    </div>
+                    <input type="text" id="input-video" class="w-full border border-indigo-200 bg-indigo-50/30 rounded-lg p-2 text-sm outline-none" placeholder="https://www.youtube.com/watch?v=...">
+                </div>
+
+                <!-- MÓDULO 7: GALERÍA (GLOBAL) -->
+                <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition" data-section="gallery" data-id="gallery">
+                    <div class="flex justify-between border-b border-slate-100 pb-3 mb-4">
+                        <h3 class="font-bold text-slate-700 text-sm uppercase tracking-wider">Galería de Imágenes (URLs separadas por comas)</h3>
+                        <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">⋮⋮ Mover</span>
+                    </div>
+                    <textarea id="input-gallery" class="w-full border border-indigo-200 bg-indigo-50/30 rounded-lg p-2 text-sm h-16 resize-none outline-none" placeholder="URL1, URL2, URL3..."></textarea>
+                </div>
+
+                <!-- MÓDULO 8: CONCLUSIÓN Y ORGANIZADORES -->
+                <div draggable="false" class="draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition" data-section="conclusion" data-id="conclusion">
+                    <div class="flex justify-between border-b border-slate-100 pb-3 mb-4">
+                        <input type="text" id="title-sec-conclusion" class="font-bold text-slate-700 bg-transparent border-b border-dashed border-slate-300 outline-none text-sm uppercase w-full sm:w-2/3" value="Conclusión">
+                        <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">⋮⋮ Mover</span>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <!-- Editor Conclusión -->
+                        <div class="editor-container">
+                            <div class="editor-toolbar">
+                            <!-- Estilos Base -->
+                            <button type="button" class="editor-btn font-bold" onclick="formatDoc('bold')" title="Negrita">B</button>
+                            <button type="button" class="editor-btn italic font-serif" onclick="formatDoc('italic')" title="Cursiva">I</button>
+                            <button type="button" class="editor-btn underline" onclick="formatDoc('underline')" title="Subrayado">U</button>
+                            <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                            
+                            <!-- Alineación -->
+                            <button type="button" class="editor-btn" onclick="formatDoc('justifyLeft')" title="Izquierda">⬅️</button>
+                            <button type="button" class="editor-btn" onclick="formatDoc('justifyCenter')" title="Centrar">↔️</button>
+                            <button type="button" class="editor-btn" onclick="formatDoc('justifyRight')" title="Derecha">➡️</button>
+                            <button type="button" class="editor-btn" onclick="formatDoc('justifyFull')" title="Justificar">▤</button>
+                            <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                            
+                            <!-- Listas -->
+                            <button type="button" class="editor-btn" onclick="formatDoc('insertUnorderedList')" title="Viñetas">• Lista</button>
+                            <button type="button" class="editor-btn" onclick="formatDoc('insertOrderedList')" title="Lista Numerada">1. Lista</button>
+                            <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                            
+                            <!-- Color y Tamaño -->
+                            <input type="color" class="w-8 h-8 p-0 border-0 rounded cursor-pointer" oninput="formatDoc('foreColor', this.value)" title="Color de texto">
+                            <select class="editor-btn bg-transparent outline-none cursor-pointer" onchange="formatDoc('fontSize', this.value); this.selectedIndex=0;" title="Tamaño de fuente">
+                                <option value="" disabled selected>Tamaño</option>
+                                <option value="2">Pequeño</option>
+                                <option value="3">Normal</option>
+                                <option value="4">Mediano</option>
+                                <option value="5">Grande</option>
+                                <option value="6">Enorme</option>
+                            </select>
+                            <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                            
+                            <!-- Enlaces, Tablas y Botones -->
+                            <button type="button" class="editor-btn" onclick="insertVisualTable()" title="Insertar Tabla">📊 Tabla</button>
+                            <button type="button" class="editor-btn" onclick="insertVisualLink()" title="Insertar Enlace">🔗 Enlace</button>
+                            <button type="button" class="editor-btn text-indigo-600 border-indigo-200 bg-indigo-50" onclick="insertVisualButton()" title="Insertar Botón TGHN">🔘 Botón TGHN</button>
+                        </div>
+                            <div id="input-conclusion" class="editor-content" contenteditable="true"></div>
+                        </div>
+
+                        <!-- Editor Organizadores Globales -->
+                        <div class="editor-container border-indigo-200">
+                            <div class="bg-indigo-50 p-2 border-b border-indigo-200 flex justify-between items-center">
+                                <!-- ESTE TÍTULO SÍ SE TRADUCE -->
+                                <input type="text" id="title-sec-orgs" class="font-bold text-indigo-700 bg-transparent border-b border-dashed border-indigo-300 outline-none text-xs uppercase w-full sm:w-1/2" value="Organización y Soporte Técnico">
+                                <span class="text-[10px] text-slate-500 font-medium">Contenido Global (Abajo) NO se traduce</span>
+                            </div>
+                            <div class="editor-toolbar bg-white">
+                                <button type="button" class="editor-btn font-bold" onclick="formatDoc('bold')">B</button>
+                                <button type="button" class="editor-btn" onclick="formatDoc('insertUnorderedList')">• Lista</button>
+                                <button type="button" class="editor-btn" onclick="insertVisualLink()">🔗 Enlace</button>
+                            </div>
+                            <div id="input-orgs" class="editor-content bg-indigo-50/10 min-h-[80px]" contenteditable="true"><ul><li>Fundación Etikos</li></ul></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <button onclick="createNewCmsSection()" class="w-full border-2 border-dashed border-indigo-500 bg-indigo-50 text-indigo-700 font-bold py-4 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-indigo-100 transition">
+                <span>➕</span> Agregar Nueva Sección Visual Extra
+            </button>
+        </div>
+
+        <!-- COLUMNA DERECHA: COMPILADOR HTML -->
+        <div class="lg:col-span-5 space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 sticky top-6">
+                <h2 class="font-bold text-slate-800 text-lg mb-4 flex items-center gap-2">
+                    <span>🚀</span> Código Generado (Formato TGHN)
+                </h2>
+                
+                <button onclick="generateOutputHTML()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl shadow transition duration-200 mb-4">
+                    ⚡ Compilar Publicación Multilingüe
+                </button>
+
+                <textarea id="outputHTML" class="w-full border border-slate-300 rounded-lg p-3 text-xs font-mono h-[480px] bg-slate-900 text-emerald-400 resize-none outline-none" readonly placeholder="El código aparecerá aquí..."></textarea>
+
+                <button onclick="copyToClipboard()" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-lg transition text-sm shadow">
+                    📋 Copiar Código al Portapapeles
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const categoriesData = {
+            "Otras Actividades": { color: "#1d4ed8", bg_badge: "#eff6ff", border: "#dbeafe", badge: { es: "Informe de Actividad", en: "Activity Report", pt: "Relatório de Atividade" } },
+            "Clubs de Investigación": { color: "#059669", bg_badge: "#ecfdf5", border: "#a7f3d0", badge: { es: "Club de Investigación Científica", en: "Scientific Research Club", pt: "Clube de Pesquisa Científica" } },
+            "Clínica de Datos": { color: "#4f46e5", bg_badge: "#f5f3ff", border: "#c7d2fe", badge: { es: "Clínica de Datos e Información", en: "Data and Information Clinic", pt: "Clínica de Dados e Informação" } },
+            "Sesiones de Aprendizaje Asistido": { color: "#7c3aed", bg_badge: "#f5f3ff", border: "#ddd6fe", badge: { es: "Aprendizaje Asistido y Tutoría", en: "Assisted Learning and Tutoring", pt: "Aprendizagem Assistida e Tutoria" } },
+            "Mentoría": { color: "#d97706", bg_badge: "#fef3c7", border: "#fde68a", badge: { es: "Programa de Mentoría Científica", en: "Scientific Mentorship Program", pt: "Programa de Mentoria Científica" } },
+            "Talleres": { color: "#0284c7", bg_badge: "#f0f9ff", border: "#bae6fd", badge: { es: "Taller Práctico", en: "Practical Workshop", pt: "Workshop Prático" } },
+            "Webinarios": { color: "#0891b2", bg_badge: "#ecfeff", border: "#a5f3fc", badge: { es: "Webinario Abierto en Línea", en: "Open Online Webinar", pt: "Webinar Online Aberto" } },
+            "Twinning": { color: "#e11d48", bg_badge: "#fff1f2", border: "#fecdd3", badge: { es: "Twinning / Hermanamiento", en: "Twinning / Scientific Partnership", pt: "Twinning / Parceria Científica" } }
+        };
+
+        const defaultSectionTitles = {
+            es: { "title-sec-summary": "Resumen de la actividad", "title-sec-logistics": "Detalles Generales y Logística", "title-sec-bullets": "Resultados Destacados", "title-sec-conclusion": "Conclusión", "title-sec-orgs": "Organización y Soporte Técnico" },
+            en: { "title-sec-summary": "Activity Summary", "title-sec-logistics": "General Details and Logistics", "title-sec-bullets": "Key Achievements", "title-sec-conclusion": "Conclusion", "title-sec-orgs": "Organization and Technical Support" },
+            pt: { "title-sec-summary": "Resumo da atividade", "title-sec-logistics": "Detalhes Gerais e Logística", "title-sec-bullets": "Resultados de Destaque", "title-sec-conclusion": "Conclusão", "title-sec-orgs": "Organização e Suporte Técnico" }
+        };
+
+        const GLOBAL_FIELDS = ['url-main-img', 'input-video', 'input-gallery', 'input-orgs'];
+        let translations = { es: {}, en: {}, pt: {} };
+        let currentLang = 'es';
+        let dynamicSectionCounter = 0;
+
+        // FUNCIONES DEL EDITOR VISUAL (WYSIWYG)
+        function formatDoc(cmd, value=null) {
+            document.execCommand(cmd, false, value);
+            document.activeElement.focus();
+        }
+
+        function insertVisualLink() {
+            const url = prompt("Introduce el enlace (Ej: https://tghn.org):");
+            if (url) formatDoc('createLink', url);
+        }
+
+        function insertVisualButton() {
+            const text = prompt("Texto del botón:");
+            if(!text) return;
+            const url = prompt("Enlace del botón:");
+            if(!url) return;
+            const html = `&nbsp;<a href="${url}" class="tghn-visual-btn" target="_blank">${text}</a>&nbsp;`;
+            formatDoc('insertHTML', html);
+        }
+        function insertVisualTable() {
+            const rows = prompt("Número de filas:", "3");
+            if (!rows || isNaN(rows)) return;
+            const cols = prompt("Número de columnas:", "3");
+            if (!cols || isNaN(cols)) return;
+
+            let html = '<table class="tghn-visual-table"><tbody>';
+            for (let r = 0; r < rows; r++) {
+                html += '<tr>';
+                for (let c = 0; c < cols; c++) {
+                    if (r === 0) {
+                        html += '<th>Encabezado</th>'; // La primera fila es de títulos
+                    } else {
+                        html += '<td>Dato</td>';
+                    }
+                }
+                html += '</tr>';
+            }
+            html += '</tbody></table><p><br></p>';
+            
+            formatDoc('insertHTML', html);
+        }
+
+        // CONTROL MULTILINGÜE ADAPTADO A DIV CONTENTEDITABLE
+        function getInputValue(el) {
+            return el.hasAttribute('contenteditable') ? el.innerHTML : el.value;
+        }
+
+        function setInputValue(el, val) {
+            if (el.hasAttribute('contenteditable')) el.innerHTML = val;
+            else el.value = val;
+        }
+
+        function silentInitApp() {
+            const catKey = document.getElementById('catCombo').value;
+            ['es', 'en', 'pt'].forEach(lang => {
+                translations[lang] = {};
+                for (let k in defaultSectionTitles[lang]) { translations[lang][k] = defaultSectionTitles[lang][k]; }
+                translations[lang]["input-badge"] = categoriesData[catKey].badge[lang];
+            });
+
+            translations.es["input-title"] = "Informe del Evento TGHN";
+            translations.es["input-summary"] = "<p>Escribe aquí el resumen de la actividad de forma visual. Puedes usar <b>Negritas</b> o botones.</p>";
+            translations.es["input-logistics"] = "<p>📅 <b>Fecha:</b> 1 y 2 de Julio<br>📍 <b>Lugar:</b> Santo Domingo</p>";
+            translations.es["input-bullets"] = "<ul><li>Resultado 1</li><li>Resultado 2</li></ul>";
+            translations.es["input-conclusion"] = "<p>Conclusión final de la actividad.</p>";
+            
+            document.getElementById('input-orgs').innerHTML = "<ul><li>Fundación Etikos</li><li>TGHN LAC</li></ul>";
+
+            loadState(currentLang);
+        }
+
+        function clearAllDataInteractive() {
+            if(!confirm("⚠️ ¿Vaciar el editor completo?")) return;
+            const catKey = document.getElementById('catCombo').value;
+            ['es', 'en', 'pt'].forEach(lang => {
+                translations[lang] = {};
+                for (let k in defaultSectionTitles[lang]) { translations[lang][k] = defaultSectionTitles[lang][k]; }
+                translations[lang]["input-badge"] = categoriesData[catKey].badge[lang];
+            });
+            document.querySelectorAll('#dragContainer input[type="text"], #dragContainer textarea, #dragContainer .editor-content').forEach(el => { 
+                if(!el.id.includes("title-sec") && el.id !== "input-badge" && !GLOBAL_FIELDS.includes(el.id)) {
+                    setInputValue(el, "");
+                }
+            });
+            loadState(currentLang);
+        }
+
+        function saveCurrentState() {
+            document.querySelectorAll('#dragContainer input[type="text"], #dragContainer textarea, #dragContainer .editor-content').forEach(el => { 
+                if (!GLOBAL_FIELDS.includes(el.id) && el.id) {
+                    translations[currentLang][el.id] = getInputValue(el); 
+                }
+            });
+        }
+
+        function loadState(lang) {
+            document.querySelectorAll('#dragContainer input[type="text"], #dragContainer textarea, #dragContainer .editor-content').forEach(el => { 
+                if (!GLOBAL_FIELDS.includes(el.id) && el.id) {
+                    setInputValue(el, translations[lang][el.id] || ""); 
+                }
+            });
+        }
+
+        function switchLanguage(lang) {
+            saveCurrentState();
+            currentLang = lang;
+            ['es', 'en', 'pt'].forEach(l => {
+                document.getElementById(`btn-lang-${l}`).className = l === lang ? 
+                    "flex-1 py-2.5 px-3 rounded-lg font-bold border-2 border-indigo-600 bg-indigo-600 text-white text-sm transition" : 
+                    "flex-1 py-2.5 px-3 rounded-lg font-semibold border-2 border-slate-200 bg-white text-slate-600 text-sm hover:border-slate-300 transition";
+            });
+            loadState(lang);
+        }
+
+        function handleCategoryChange() {
+            const cat = categoriesData[document.getElementById('catCombo').value];
+            document.getElementById('input-badge').value = cat.badge[currentLang];
+            translations.es["input-badge"] = cat.badge.es;
+            translations.en["input-badge"] = cat.badge.en;
+            translations.pt["input-badge"] = cat.badge.pt;
+        }
+
+        // ==========================================
+        // TRADUCCIÓN AUTOMÁTICA HTML (ESCUDO ANTI-ROTURA DE TABLAS)
+        // ==========================================
+        async function fetchGoogleTranslationHTML(htmlText, targetLang) {
+            if (!htmlText || htmlText.trim() === '' || htmlText === '<p><br></p>') return htmlText;
+            
+            // 1. ESCUDO HTML: Extraer y proteger etiquetas (evita que Google rompa las tablas)
+            let htmlTags = [];
+            let safeText = htmlText.replace(/<[^>]+>/g, (match) => {
+                htmlTags.push(match);
+                return ` __T${htmlTags.length - 1}__ `; // Marcador indestructible
+            });
+
+            // 2. ESCUDO TGHN: Proteger botones y enlaces nativos
+            let linkMap = [];
+            safeText = safeText.replace(/\[(btn:[^\]]+|[^\]]+)\]\(([^)]+)\)/g, (match, p1, p2) => {
+                linkMap.push({ isBtn: p1.startsWith('btn:'), label: p1.replace('btn:', ''), url: p2 });
+                return ` __L${linkMap.length - 1}__ `; // Marcador indestructible
+            });
+
+            // Pausa controlada para no colapsar los servidores de Google
+            const delay = ms => new Promise(res => setTimeout(res, ms));
+
+            try {
+                // Mandamos el texto "blindado" y limpio a Google
+                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=es&tl=${targetLang}&dt=t&q=${encodeURIComponent(safeText)}`;
+                let res = await fetch(url);
+                let json = await res.json();
+                
+                let transText = "";
+                if (json && json[0]) {
+                    json[0].forEach(item => { if (item[0]) transText += item[0]; });
+                } else {
+                    transText = safeText;
+                }
+                
+                // Traducir internamente el texto de los botones/enlaces TGHN
+                for (let i = 0; i < linkMap.length; i++) {
+                    let item = linkMap[i];
+                    let labelTrans = item.label;
+                    try {
+                        const lUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=es&tl=${targetLang}&dt=t&q=${encodeURIComponent(item.label)}`;
+                        let lRes = await fetch(lUrl);
+                        let lJson = await lRes.json();
+                        if (lJson && lJson[0] && lJson[0][0] && lJson[0][0][0]) {
+                            labelTrans = lJson[0][0][0];
+                        }
+                    } catch(e){}
+
+                    let restoredMarkdown = item.isBtn ? `[btn:${labelTrans}](${item.url})` : `[${labelTrans}](${item.url})`;
+                    
+                    // Restaurar marcador tolerando espacios (ej: __ L 0 __)
+                    let regexLink = new RegExp(`__\\s*L\\s*${i}\\s*__`, 'gi');
+                    transText = transText.replace(regexLink, restoredMarkdown);
+                    await delay(200);
+                }
+
+                // 3. RESTAURACIÓN MÁGICA: Devolver la estructura HTML exacta a su sitio
+                for (let i = 0; i < htmlTags.length; i++) {
+                    let regexTag = new RegExp(`__\\s*T\\s*${i}\\s*__`, 'gi');
+                    transText = transText.replace(regexTag, htmlTags[i]);
+                }
+
+                await delay(400); // 400ms de pausa de seguridad
+                return transText;
+                
+            } catch (e) {
+                console.error('Error traduciendo:', e);
+                return htmlText; 
+            }
+        }
+        async function runAutoTranslationAPI() {
+            saveCurrentState();
+            const btn = document.getElementById('btn-auto-translate');
+            const status = document.getElementById('translate-status');
+            
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            status.classList.remove('hidden');
+
+            const keysToTranslate = Object.keys(translations.es);
+            const noTranslateFields = ['input-badge']; 
+
+            // TRADUCCIÓN A INGLÉS
+            for (let key of keysToTranslate) {
+                if (noTranslateFields.includes(key)) continue;
+                if (key.includes('title-sec') && defaultSectionTitles.en[key]) {
+                    translations.en[key] = defaultSectionTitles.en[key];
+                } else if (translations.es[key]) {
+                    translations.en[key] = await fetchGoogleTranslationHTML(translations.es[key], 'en');
+                }
+            }
+
+            // TRADUCCIÓN A PORTUGUÉS
+            for (let key of keysToTranslate) {
+                if (noTranslateFields.includes(key)) continue;
+                if (key.includes('title-sec') && defaultSectionTitles.pt[key]) {
+                    translations.pt[key] = defaultSectionTitles.pt[key];
+                } else if (translations.es[key]) {
+                    translations.pt[key] = await fetchGoogleTranslationHTML(translations.es[key], 'pt');
+                }
+            }
+
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            status.classList.add('hidden');
+
+            loadState(currentLang);
+            alert("✨ ¡Traducción Inteligente Completada! Títulos y textos traducidos correctamente sin afectar a las Entidades Organizadoras.");
+        }
+
+        // ==========================================
+        // COMPILADOR CMS A TGHN (INYECCIÓN DE ESTILOS Y COLORES)
+        // ==========================================
+        function injectTGHNStyles(htmlString, catColor, isDarkBg = false) {
+            if (!htmlString || htmlString === '<p><br></p>') return "";
+            let styled = htmlString;
+            
+            // Si es fondo oscuro (Conclusión), forzamos texto claro, de lo contrario oscuro
+            const baseColor = isDarkBg ? '#f8fafc' : '#1e293b';
+            const linkColor = isDarkBg ? '#60a5fa' : catColor; // Enlaces más claros en fondo oscuro
+            
+            styled = styled.replace(/<a[^>]*class="[^"]*tghn-visual-btn[^"]*"[^>]*href="([^"]+)"[^>]*>(.*?)<\/a>/gi, 
+                `<div style="text-align: center; margin: 25px 0 30px 0;"><a href="$1" target="_blank" style="display: inline-block; background-color: ${catColor}; color: white; padding: 11px 32px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.06); transition: opacity 0.2s;">$2</a></div>`
+            );
+            styled = styled.replace(/<a(?![^>]*style)[^>]*href="([^"]+)"[^>]*>(.*?)<\/a>/gi, 
+                `<a href="$1" target="_blank" style="color: ${linkColor}; text-decoration: underline; font-weight: 600;">$2</a>`
+            );
+            styled = styled.replace(/<ul[^>]*>/gi, `<ul style="padding-left: 20px; margin-bottom: 15px; color: ${baseColor}; list-style-type: disc;">`);
+            styled = styled.replace(/<ol[^>]*>/gi, `<ol style="padding-left: 20px; margin-bottom: 15px; color: ${baseColor}; list-style-type: decimal;">`);
+            styled = styled.replace(/<li[^>]*>/gi, `<li style="margin-bottom: 8px;">`);
+            styled = styled.replace(/<div>/gi, `<div style="margin-bottom: 10px;">`);
+            
+            return styled;
+        }
+
+        function generateOutputHTML() {
+            saveCurrentState();
+            const cat = categoriesData[document.getElementById('catCombo').value];
+            const hasEnglish = translations.en["input-title"] && translations.en["input-title"].trim() !== "";
+            const hasPortuguese = translations.pt["input-title"] && translations.pt["input-title"].trim() !== "";
+            const uniqueId = "tghn_" + Math.floor(Math.random() * 100000);
+
+            // Rescatar variables globales de forma segura
+            const mainImgEl = document.getElementById('url-main-img');
+            const videoEl = document.getElementById('input-video');
+            const galleryEl = document.getElementById('input-gallery');
+            const orgsEl = document.getElementById('input-orgs');
+
+            const globalMainImg = mainImgEl ? mainImgEl.value.trim() : '';
+            const globalVideo = videoEl ? videoEl.value.trim() : '';
+            const globalGallery = galleryEl ? galleryEl.value.trim() : '';
+            const globalOrgsHtml = orgsEl ? orgsEl.innerHTML.trim() : '';
+
+            let html = `<div id="${uniqueId}" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; font-size: 16px; line-height: 1.7; max-width: 1100px; margin: 0 auto; padding: 20px; background-color: #fcfcfd;">\n\n`;
+
+            html += `    <!-- CONTROLADORES SEGMENTADOS DE IDIOMA -->
+    <div style="display: flex; justify-content: center; gap: 4px; margin-bottom: 45px; background-color: #f1f5f9; padding: 5px; border-radius: 30px; max-width: 320px; margin-left: auto; margin-right: auto; border: 1px solid #e2e8f0; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);">
+        <button onclick="tghnSwitchView('${uniqueId}', 'es', this)" style="flex: 1; background-color: #ffffff; color: #0f172a; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 700; font-size: 13px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">Español</button>\n`;
+            if(hasEnglish) html += `        <button onclick="tghnSwitchView('${uniqueId}', 'en', this)" style="flex: 1; background-color: transparent; color: #64748b; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 13px; cursor: pointer;">English</button>\n`;
+            if(hasPortuguese) html += `        <button onclick="tghnSwitchView('${uniqueId}', 'pt', this)" style="flex: 1; background-color: transparent; color: #64748b; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 13px; cursor: pointer;">Português</button>\n`;
+            html += `    </div>\n\n`;
+
+            const modulesInDOM = [...document.getElementById('dragContainer').querySelectorAll('.draggable-section')];
+
+            const renderBlockByLanguage = (langCode) => {
+                let blockHtml = "";
+                
+                modulesInDOM.forEach(mod => {
+                    const secType = mod.getAttribute('data-section');
+                    const id = mod.getAttribute('data-id');
+
+                    // Validar si el campo tiene contenido real. Si está vacío o tiene <br> suelto, se salta automáticamente.
+                    let rawContent = translations[langCode][`input-${id}`] || "";
+                    let isContentEmpty = (!rawContent || rawContent.trim() === '' || rawContent.trim() === '<p><br></p>' || rawContent.trim() === '<br>');
+
+                    if (secType === 'header') {
+                        blockHtml += `        <!-- CABECERA -->
+        <div style="text-align: center; padding: 20px 0; margin-bottom: 40px;">
+            <span style="display: inline-block; background-color: ${cat.bg_badge}; color: ${cat.color}; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: 600; margin-bottom: 20px; border: 1px solid ${cat.border}; text-transform: uppercase;">
+                ${translations[langCode]["input-badge"] || cat.badge[langCode]}
+            </span>
+            <h1 style="font-size: 32px; font-weight: 800; color: #1e293b; margin-bottom: 15px; line-height: 1.3;">${translations[langCode]["input-title"] || ''}</h1>
+        </div>\n\n`;
+                    }
+
+                    if (secType === 'summary' || secType === 'bullets' || secType === 'custom-text-block') {
+                        if(isContentEmpty) return; // AUTO-INCLUSIÓN: Si está vacío, lo ignora.
+                        const parsedHTML = injectTGHNStyles(rawContent, cat.color);
+                        blockHtml += `        <!-- SECCIÓN CMS -->
+        <div style="border-top: 1px solid #cbd5e1; padding-top: 35px; margin-bottom: 40px;">
+            <h2 style="font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 20px;">${translations[langCode][`title-sec-${id}`] || 'Sección'}</h2>
+            <div style="color: #1e293b; text-align: justify; line-height: 1.7;">${parsedHTML}</div>
+        </div>\n\n`;
+                    }
+                    
+                    if (secType === 'logistics') {
+                        if(isContentEmpty) return;
+                        const parsedHTML = injectTGHNStyles(rawContent, cat.color);
+                        blockHtml += `        <!-- DETALLES LOGÍSTICOS -->
+        <div style="border-top: 1px solid #cbd5e1; padding-top: 35px; margin-bottom: 40px;">
+            <h2 style="font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 20px;">${translations[langCode][`title-sec-${id}`]}</h2>
+            <div style="background: #f8fafc; border-left: 4px solid ${cat.color}; padding: 18px; border-radius: 0 8px 8px 0; color: #1e293b; line-height: 1.7;">${parsedHTML}</div>
+        </div>\n\n`;
+                    }
+
+                    if (secType === 'main-image' && globalMainImg) {
+                        blockHtml += `        <!-- IMAGEN DESTACADA -->
+        <div style="margin-bottom: 40px; text-align: center;">
+            <img src="${globalMainImg}" alt="Imagen TGHN" style="width: 100%; height: auto; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);" />
+            ${translations[langCode]["caption-main-img"] ? `<em style="display: block; font-size: 14px; color: #64748b; margin-top: 10px;">${translations[langCode]["caption-main-img"]}</em>` : ''}
+        </div>\n\n`;
+                    }
+
+                    if (secType === 'video' && globalVideo) {
+                        let vidId = globalVideo.includes('v=') ? globalVideo.split('v=')[1].split('&')[0] : (globalVideo.includes('youtu.be/') ? globalVideo.split('youtu.be/')[1].split('?')[0] : globalVideo);
+                        blockHtml += `        <!-- VIDEO EMBED YOUTUBE -->
+        <div style="border-top: 1px solid #cbd5e1; padding-top: 35px; margin-bottom: 40px; text-align: center;">
+            <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+                <iframe src="https://www.youtube.com/embed/${vidId}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" allowfullscreen></iframe>
+            </div>
+        </div>\n\n`;
+                    }
+
+                    if (secType === 'gallery' && globalGallery) {
+                        let gridHtml = '';
+                        globalGallery.split(',').forEach(url => {
+                            if(url.trim()) gridHtml += `                <div style="text-align: center;"><img style="width: 100%; height: 220px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0;" src="${url.trim()}" /></div>\n`;
+                        });
+                        blockHtml += `        <!-- GALERÍA GRID -->
+        <div style="border-top: 1px solid #cbd5e1; padding-top: 35px; margin-bottom: 40px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">\n${gridHtml}            </div>
+        </div>\n\n`;
+                    }
+
+                    if (secType === 'conclusion') {
+                        if(isContentEmpty && (!globalOrgsHtml || globalOrgsHtml === '')) return;
+                        
+                        const parsedConclusion = injectTGHNStyles(rawContent, cat.color, true);
+                        const parsedOrgs = injectTGHNStyles(globalOrgsHtml, cat.color, true);
+                        
+                        // Traducción dinámica del título de la caja de organizadores
+                        const titleOrgs = translations[langCode]["title-sec-orgs"] || "Organización y Soporte Técnico";
+
+                        blockHtml += `        <!-- CONCLUSIÓN FINALES -->
+        <div style="border-top: 1px solid #cbd5e1; background-color: #0f172a; color: white; padding: 45px 30px; text-align: center; border-radius: 12px; margin-top: 20px;">
+            <h2 style="font-size: 26px; color: #ffffff; margin-bottom: 15px; font-weight: 800;">${translations[langCode][`title-sec-${id}`]}</h2>
+            <div style="color: #94a3b8; max-width: 850px; margin: 0 auto 30px auto; font-size: 16px; text-align: justify; line-height: 1.8;">${parsedConclusion}</div>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #334155; text-align: left;">
+                <strong style="color: #ffffff; font-size: 16px; display: block; margin-bottom: 12px;">${titleOrgs}:</strong>\n                <div style="color: rgba(255,255,255,0.85); font-size: 15px;">${parsedOrgs}</div>
+            </div>
+        </div>\n\n`;
+                    }
+                });
+
+                return blockHtml;
+            };
+
+            html += `    <div class="${uniqueId}_lang_block" id="${uniqueId}_es" style="display: block;">\n${renderBlockByLanguage('es')}    </div>\n\n`;
+            if(hasEnglish) html += `    <div class="${uniqueId}_lang_block" id="${uniqueId}_en" style="display: none;">\n${renderBlockByLanguage('en')}    </div>\n\n`;
+            if(hasPortuguese) html += `    <div class="${uniqueId}_lang_block" id="${uniqueId}_pt" style="display: none;">\n${renderBlockByLanguage('pt')}    </div>\n\n`;
+
+            html += `    <!-- CONTROLADORES DINÁMICOS -->
+    <script>
+        function tghnSwitchView(wrapperId, langCode, clickedBtn) {
+            var blocks = document.querySelectorAll('.' + wrapperId + '_lang_block');
+            blocks.forEach(function(b) { b.style.display = 'none'; });
+            document.getElementById(wrapperId + '_' + langCode).style.display = 'block';
+            
+            var buttons = clickedBtn.parentElement.children;
+            for(var i=0; i < buttons.length; i++) {
+                buttons[i].style.backgroundColor = 'transparent'; buttons[i].style.color = '#64748b'; buttons[i].style.fontWeight = '600'; buttons[i].style.boxShadow = 'none';
+            }
+            clickedBtn.style.backgroundColor = '#ffffff'; clickedBtn.style.color = '#0f172a'; clickedBtn.style.fontWeight = '700'; clickedBtn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)';
+        }
+    <\/script>\n\n</div>`;
+            document.getElementById('outputHTML').value = html;
+        }
+
+        // CREAR SECCIÓN VISUAL EXTRA
+        function createNewCmsSection() {
+            saveCurrentState();
+            dynamicSectionCounter++;
+            const id = `custom_${dynamicSectionCounter}`;
+
+            const newModule = document.createElement('div');
+            newModule.draggable = false;
+            newModule.className = "draggable-section bg-white p-6 rounded-xl shadow-sm border border-slate-200 transition";
+            newModule.setAttribute('data-section', 'custom-text-block');
+            newModule.setAttribute('data-id', id);
+
+            newModule.addEventListener('dragstart', handleDragStart);
+            newModule.addEventListener('dragend', handleDragEnd);
+
+            newModule.innerHTML = `
+                <div class="flex justify-between border-b border-slate-100 pb-3 mb-4">
+                    <input type="text" id="title-sec-${id}" class="font-bold text-slate-700 bg-transparent border-b border-dashed border-slate-300 outline-none text-sm uppercase w-full sm:w-2/3" value="Nueva Sección">
+                    <span onmousedown="enableDrag(this)" onmouseup="disableDrag(this)" onmouseleave="disableDrag(this)" class="drag-handle text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">⋮⋮ Mover</span>
+                </div>
+                <div class="editor-container">
+                    <div class="editor-toolbar">
+                        <button type="button" class="editor-btn font-bold" onclick="formatDoc('bold')" title="Negrita">B</button>
+                        <button type="button" class="editor-btn italic font-serif" onclick="formatDoc('italic')" title="Cursiva">I</button>
+                        <button type="button" class="editor-btn underline" onclick="formatDoc('underline')" title="Subrayado">U</button>
+                        <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                        <button type="button" class="editor-btn" onclick="formatDoc('justifyLeft')" title="Izquierda">⬅️</button>
+                        <button type="button" class="editor-btn" onclick="formatDoc('justifyCenter')" title="Centrar">↔️</button>
+                        <button type="button" class="editor-btn" onclick="formatDoc('justifyRight')" title="Derecha">➡️</button>
+                        <button type="button" class="editor-btn" onclick="formatDoc('justifyFull')" title="Justificar">▤</button>
+                        <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                        <button type="button" class="editor-btn" onclick="formatDoc('insertUnorderedList')" title="Viñetas">• Lista</button>
+                        <button type="button" class="editor-btn" onclick="formatDoc('insertOrderedList')" title="Lista Numerada">1. Lista</button>
+                        <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                        <input type="color" class="w-8 h-8 p-0 border-0 rounded cursor-pointer" oninput="formatDoc('foreColor', this.value)" title="Color de texto">
+                        <select class="editor-btn bg-transparent outline-none cursor-pointer" onchange="formatDoc('fontSize', this.value); this.selectedIndex=0;" title="Tamaño de fuente">
+                            <option value="" disabled selected>Tamaño</option>
+                            <option value="2">Pequeño</option><option value="3">Normal</option><option value="4">Mediano</option><option value="5">Grande</option><option value="6">Enorme</option>
+                        </select>
+                        <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                            <button type="button" class="editor-btn" onclick="insertVisualTable()" title="Insertar Tabla">📊 Tabla</button>
+                            <button type="button" class="editor-btn" onclick="insertVisualLink()" title="Insertar Enlace">🔗 Enlace</button>
+                            <button type="button" class="editor-btn text-indigo-600 border-indigo-200 bg-indigo-50" onclick="insertVisualButton()" title="Insertar Botón TGHN">🔘 Botón TGHN</button>
+                    </div>
+                    <div id="input-${id}" class="editor-content" contenteditable="true"></div>
+                </div>
+            `;
+
+            document.getElementById('dragContainer').appendChild(newModule);
+            ['es', 'en', 'pt'].forEach(lang => {
+                translations[lang][`title-sec-${id}`] = "Nueva Sección";
+                translations[lang][`input-${id}`] = "";
+            });
+            loadState(currentLang);
+        }
+
+        // ARRASTRE
+        let draggingElement = null;
+        function enableDrag(handle) { handle.closest('.draggable-section').setAttribute('draggable', 'true'); }
+        function disableDrag(handle) {
+            const card = handle.closest('.draggable-section');
+            if (!card.classList.contains('dragging')) card.setAttribute('draggable', 'false');
+        }
+        function handleDragStart(e) { draggingElement = e.currentTarget; draggingElement.classList.add('dragging'); }
+        function handleDragEnd(e) { if (draggingElement) { draggingElement.classList.remove('dragging'); draggingElement.setAttribute('draggable', 'false'); } draggingElement = null; }
+
+        const container = document.getElementById('dragContainer');
+        container.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const afterElement = getDragAfterElement(container, e.clientY);
+            if (afterElement == null) container.appendChild(draggingElement); else container.insertBefore(draggingElement, afterElement);
+        });
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.draggable-section:not(.dragging)')];
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect(); const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) return { offset: offset, element: child }; else return closest;
+            }, { offset: -Infinity }).element;
+        }
+
+        window.onload = function() { silentInitApp(); };
+        function copyToClipboard() { document.getElementById("outputHTML").select(); document.execCommand("copy"); alert("¡Código CMS V8.1 copiado y listo para producción!"); }
+    </script>
+</body>
+</html>
